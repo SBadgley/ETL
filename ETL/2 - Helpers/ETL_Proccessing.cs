@@ -14,6 +14,7 @@ namespace ETL._2___Helpers
 {
     public class ETL_Proccessing
     {
+        int iInsertCount = 0;
         public bool ETL_Atrributes(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
             Logging logging = new Logging();
@@ -44,7 +45,6 @@ namespace ETL._2___Helpers
                 // description varchar(512) not nullable
 
                 string insertStatement = "";
-                int iRows = 0;
 
                 // txtOffenseExcelFile.Text
 
@@ -73,7 +73,7 @@ namespace ETL._2___Helpers
                                 insertStatement = "INSERT INTO migration_offense_codes (code, name, description) " + 
                                     "VALUES ('" + Code + "', '" + Name + "', '" + Name + "')";
 
-                                iRows += 1;
+                                iInsertCount += 1;
                                 // SCB TODO: migration_offense_codes table doen't exist in my current DB/Schema. So insert commented out.
                                 //mySqlDAL.ExecuteNonQuery(insertStatement);
                             }
@@ -82,8 +82,7 @@ namespace ETL._2___Helpers
                     }
                 }
                 mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
-                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Offecnse codes copied.', '" + iRows + " rows copied.', '')");
-
+                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Offense codes copied.', '" + iInsertCount + " rows copied.', '')");
 
                 return true;
             }
@@ -146,6 +145,10 @@ namespace ETL._2___Helpers
                 //       INCIDENT.USE_OF_FORCE_CODES has semi-colon seperated values.
                 //          Individually, use these to look up MASTER_CODES where table_id = 'USEOFFORCE' AND code_value = [[parsed use of force code]]
 
+
+                //iInsertCount = +1;
+                //mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
+                //    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Offenses copied.', '" + iInsertCount + " rows copied.', '')");
 
 
                 return true;
@@ -220,8 +223,12 @@ namespace ETL._2___Helpers
                         insertStatement += insertValues;
 
                         mySqlDAL.ExecuteNonQuery(insertStatement);
+                        iInsertCount += 1;
                     }
                 }
+                mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
+                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Users copied.', '" + iInsertCount + " rows copied.', '')");
+
                 return true;
             }
             catch (Exception ex)
@@ -269,8 +276,13 @@ namespace ETL._2___Helpers
                         insertStatement += insertValues;
 
                         mySqlDAL.ExecuteNonQuery(insertStatement);
+                        iInsertCount += 1;
                     }
                 }
+
+                mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
+                        "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Locations copied.', '" + iInsertCount + " rows copied.', '')");
+
                 return true;
             }
             catch (Exception ex)
@@ -321,8 +333,13 @@ namespace ETL._2___Helpers
                         insertStatement += insertValues;
 
                         mySqlDAL.ExecuteNonQuery(insertStatement);
+                        iInsertCount += 1;
                     }
                 }
+
+                mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
+                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Names copied.', '" + iInsertCount + " rows copied.', '')");
+
                 return true;
             }
             catch (Exception ex)
