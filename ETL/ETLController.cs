@@ -3,6 +3,10 @@ using System.Windows.Forms;
 using DataAccessLayer_NET_Framework_;
 using ETL._2___Helpers;
 using System.Configuration;
+using System.Data;
+using System.Data.OleDb;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace ETL
 {
@@ -13,7 +17,6 @@ namespace ETL
         public string mySqlConnString = "";
         public string oracleConnString = "";
         #endregion
-
         #region Class Initialization
         public ETLController()
         {
@@ -85,30 +88,35 @@ namespace ETL
             // At this point in the routine, form completeness has been checked as best as can be AND the DB connections have been successful.
             ETL_Proccessing etlProcessing = new ETL_Proccessing();
 
+            if (!etlProcessing.BuildMasterCodeDataView(txtDataDictionaryFilePath.Text))
+            {
+                logging.WriteEvent("Could not build MasterCode view. Check Excel file and make sure it is not opened.");
+            }
+
 
             if (chkAttributes.Checked)
             { 
-                etlProcessing.ETL_Atrributes(oracleDAL, mySqlDAL);
+                etlProcessing.ETL_10_Atrributes(oracleDAL, mySqlDAL);
             }
 
             if (chkOffenseCodes.Checked)
             { 
-                etlProcessing.ETL_OffenseCodes(oracleDAL, mySqlDAL, txtOffenseExcelFile.Text);
+                etlProcessing.ETL_20_OffenseCodes(oracleDAL, mySqlDAL, txtOffenseExcelFile.Text);
             }
-
+            // ETL_30_Offenses ??
             if (chkUsers.Checked)
             {
-                etlProcessing.ETL_Users(oracleDAL, mySqlDAL);
+                etlProcessing.ETL_40_Users(oracleDAL, mySqlDAL);
             }
 
             if (chkLocations.Checked)
             {
-                etlProcessing.ETL_Locations(oracleDAL, mySqlDAL);
+                etlProcessing.ETL_50_Locations(oracleDAL, mySqlDAL);
             }
 
             if (chkNames.Checked)
             {
-                etlProcessing.ETL_Names(oracleDAL, mySqlDAL);
+                etlProcessing.ETL_60_Names(oracleDAL, mySqlDAL);
             }
 
             // Etc...
@@ -128,7 +136,7 @@ namespace ETL
         {
             if (chkOffenseCodes.Checked & txtOffenseExcelFile.Text == "")
             {
-                MessageBox.Show("Select an Excel file to export.");
+                MessageBox.Show("Select an Offense Code Excel file.");
                 return false;
             }
             if (txtOracleConnString.Text == "" || txtMySqlConnString.Text == "")
@@ -136,14 +144,25 @@ namespace ETL
                 MessageBox.Show("One or both of the connection strings could not be found. Check app.config file.");
                 return false;
             }
-
+            if (txtDataDictionaryFilePath.Text == "")
+            {
+                MessageBox.Show("Select the Data Dictionary Excel file.");
+                return false;
+            }
             return true;
         }
-
+        #endregion
+        #region Click Events
         private void btnSelectOffenseExcel_Click(object sender, EventArgs e)
         {
             openOffenseExcelFile.ShowDialog();
             txtOffenseExcelFile.Text = openOffenseExcelFile.FileName;
+        }
+
+        private void btnSelectDataDictionaryFile_Click(object sender, EventArgs e)
+        {
+            openOffenseExcelFile.ShowDialog();
+            txtDataDictionaryFilePath.Text = openOffenseExcelFile.FileName;
         }
         #endregion
     }

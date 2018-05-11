@@ -47,10 +47,13 @@
             this.btnRUNMigration = new System.Windows.Forms.Button();
             this.openOffenseExcelFile = new System.Windows.Forms.OpenFileDialog();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.txtOracleConnString = new System.Windows.Forms.TextBox();
-            this.txtMySqlConnString = new System.Windows.Forms.TextBox();
-            this.lblOracleConnString = new System.Windows.Forms.Label();
             this.lblMySqlConnString = new System.Windows.Forms.Label();
+            this.lblOracleConnString = new System.Windows.Forms.Label();
+            this.txtMySqlConnString = new System.Windows.Forms.TextBox();
+            this.txtOracleConnString = new System.Windows.Forms.TextBox();
+            this.btnSelectDataDictionaryFile = new System.Windows.Forms.Button();
+            this.txtDataDictionaryFilePath = new System.Windows.Forms.TextBox();
+            this.lblDataDictionaryFile = new System.Windows.Forms.Label();
             this.gbDataEntities.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -80,9 +83,9 @@
             this.gbDataEntities.Controls.Add(this.chkLookupTables);
             this.gbDataEntities.Controls.Add(this.chkOffenseCodes);
             this.gbDataEntities.Controls.Add(this.chkAttributes);
-            this.gbDataEntities.Location = new System.Drawing.Point(27, 213);
+            this.gbDataEntities.Location = new System.Drawing.Point(27, 224);
             this.gbDataEntities.Name = "gbDataEntities";
-            this.gbDataEntities.Size = new System.Drawing.Size(1095, 396);
+            this.gbDataEntities.Size = new System.Drawing.Size(1095, 394);
             this.gbDataEntities.TabIndex = 10;
             this.gbDataEntities.TabStop = false;
             this.gbDataEntities.Text = "Data Entities";
@@ -240,48 +243,77 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.lblDataDictionaryFile);
+            this.groupBox1.Controls.Add(this.btnSelectDataDictionaryFile);
+            this.groupBox1.Controls.Add(this.txtDataDictionaryFilePath);
             this.groupBox1.Controls.Add(this.lblMySqlConnString);
             this.groupBox1.Controls.Add(this.lblOracleConnString);
             this.groupBox1.Controls.Add(this.txtMySqlConnString);
             this.groupBox1.Controls.Add(this.txtOracleConnString);
             this.groupBox1.Location = new System.Drawing.Point(27, 25);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(1095, 182);
+            this.groupBox1.Size = new System.Drawing.Size(1095, 193);
             this.groupBox1.TabIndex = 12;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Data Sources (Connect Strings)";
             // 
-            // txtOracleConnString
+            // lblMySqlConnString
             // 
-            this.txtOracleConnString.Location = new System.Drawing.Point(31, 55);
-            this.txtOracleConnString.Name = "txtOracleConnString";
-            this.txtOracleConnString.Size = new System.Drawing.Size(1040, 22);
-            this.txtOracleConnString.TabIndex = 25;
-            // 
-            // txtMySqlConnString
-            // 
-            this.txtMySqlConnString.Location = new System.Drawing.Point(31, 116);
-            this.txtMySqlConnString.Name = "txtMySqlConnString";
-            this.txtMySqlConnString.Size = new System.Drawing.Size(1040, 22);
-            this.txtMySqlConnString.TabIndex = 26;
+            this.lblMySqlConnString.AutoSize = true;
+            this.lblMySqlConnString.Location = new System.Drawing.Point(28, 75);
+            this.lblMySqlConnString.Name = "lblMySqlConnString";
+            this.lblMySqlConnString.Size = new System.Drawing.Size(128, 17);
+            this.lblMySqlConnString.TabIndex = 28;
+            this.lblMySqlConnString.Text = "MySql Conn String:";
             // 
             // lblOracleConnString
             // 
             this.lblOracleConnString.AutoSize = true;
-            this.lblOracleConnString.Location = new System.Drawing.Point(28, 35);
+            this.lblOracleConnString.Location = new System.Drawing.Point(28, 25);
             this.lblOracleConnString.Name = "lblOracleConnString";
             this.lblOracleConnString.Size = new System.Drawing.Size(132, 17);
             this.lblOracleConnString.TabIndex = 27;
             this.lblOracleConnString.Text = "Oracle Conn String:";
             // 
-            // lblMySqlConnString
+            // txtMySqlConnString
             // 
-            this.lblMySqlConnString.AutoSize = true;
-            this.lblMySqlConnString.Location = new System.Drawing.Point(28, 96);
-            this.lblMySqlConnString.Name = "lblMySqlConnString";
-            this.lblMySqlConnString.Size = new System.Drawing.Size(128, 17);
-            this.lblMySqlConnString.TabIndex = 28;
-            this.lblMySqlConnString.Text = "MySql Conn String:";
+            this.txtMySqlConnString.Location = new System.Drawing.Point(31, 95);
+            this.txtMySqlConnString.Name = "txtMySqlConnString";
+            this.txtMySqlConnString.Size = new System.Drawing.Size(1040, 22);
+            this.txtMySqlConnString.TabIndex = 26;
+            // 
+            // txtOracleConnString
+            // 
+            this.txtOracleConnString.Location = new System.Drawing.Point(31, 45);
+            this.txtOracleConnString.Name = "txtOracleConnString";
+            this.txtOracleConnString.Size = new System.Drawing.Size(1040, 22);
+            this.txtOracleConnString.TabIndex = 25;
+            // 
+            // btnSelectDataDictionaryFile
+            // 
+            this.btnSelectDataDictionaryFile.Location = new System.Drawing.Point(858, 135);
+            this.btnSelectDataDictionaryFile.Name = "btnSelectDataDictionaryFile";
+            this.btnSelectDataDictionaryFile.Size = new System.Drawing.Size(84, 34);
+            this.btnSelectDataDictionaryFile.TabIndex = 30;
+            this.btnSelectDataDictionaryFile.Text = "Select";
+            this.btnSelectDataDictionaryFile.UseVisualStyleBackColor = true;
+            this.btnSelectDataDictionaryFile.Click += new System.EventHandler(this.btnSelectDataDictionaryFile_Click);
+            // 
+            // txtDataDictionaryFilePath
+            // 
+            this.txtDataDictionaryFilePath.Location = new System.Drawing.Point(31, 148);
+            this.txtDataDictionaryFilePath.Name = "txtDataDictionaryFilePath";
+            this.txtDataDictionaryFilePath.Size = new System.Drawing.Size(819, 22);
+            this.txtDataDictionaryFilePath.TabIndex = 29;
+            // 
+            // lblDataDictionaryFile
+            // 
+            this.lblDataDictionaryFile.AutoSize = true;
+            this.lblDataDictionaryFile.Location = new System.Drawing.Point(32, 128);
+            this.lblDataDictionaryFile.Name = "lblDataDictionaryFile";
+            this.lblDataDictionaryFile.Size = new System.Drawing.Size(131, 17);
+            this.lblDataDictionaryFile.TabIndex = 31;
+            this.lblDataDictionaryFile.Text = "Data Dictionary file:";
             // 
             // ETLController
             // 
@@ -328,6 +360,9 @@
         private System.Windows.Forms.Label lblOracleConnString;
         public System.Windows.Forms.TextBox txtMySqlConnString;
         public System.Windows.Forms.TextBox txtOracleConnString;
+        private System.Windows.Forms.Button btnSelectDataDictionaryFile;
+        private System.Windows.Forms.TextBox txtDataDictionaryFilePath;
+        private System.Windows.Forms.Label lblDataDictionaryFile;
     }
 }
 

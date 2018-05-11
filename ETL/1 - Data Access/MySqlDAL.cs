@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Data;
-
 using System.Configuration;
-
 using ETL._2___Helpers;
 using MySql.Data.MySqlClient;
-
-using ETL;
 
 namespace DataAccessLayer_NET_Framework_
 {
@@ -77,6 +73,7 @@ namespace DataAccessLayer_NET_Framework_
             else
             {
                 logging.WriteEvent("Error in ExecuteNonQuery. Could not connect to database.");
+                return false;
             }
         }
 

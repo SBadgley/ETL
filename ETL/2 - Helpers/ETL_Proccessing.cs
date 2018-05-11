@@ -1,19 +1,18 @@
 ﻿using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types;
-
 using MySql.Data.MySqlClient;
-
 using DataAccessLayer_NET_Framework_;
-
-using System.Configuration;
 using System;
-
+using System.Data;
 using System.Data.OleDb;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ETL._2___Helpers
 {
     public class ETL_Proccessing
     {
+        #region Declares
         string currentDateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         string defaultCreatedUpdatedBy = "1";
 
@@ -21,12 +20,15 @@ namespace ETL._2___Helpers
         int iInsertErrorCount = 0;
         Logging logging = new Logging();
 
-        public bool ETL_Atrributes(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
+        public static DataView vMasterCodes = new DataView();
+        #endregion
+
+        #region ETL_10_Atrributes
+        public bool ETL_10_Atrributes(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
-            //Logging logging = new Logging();
             try
             {
-                // Where to get the attributes??  MASTER_CODES.CODE_DESCRIPTION?? From spreadsheet, appears maybe so.  Need Oracle access to see.
+                // SCB TODO: Where to get the attributes??  MASTER_CODES.CODE_DESCRIPTION?? From spreadsheet, appears maybe so.  Need Oracle access to see.
 
                 string selectStatement = "SELECT ?? FROM ??";
 
@@ -76,12 +78,12 @@ namespace ETL._2___Helpers
                 return false;
             }
         }
-
-        public bool ETL_OffenseCodes(OracleDAL oracleDAL, MySqlDAL mySqlDAL, string offenseCodeExcelPath)
+        #endregion
+        #region ETL_20_OffenseCodes
+        public bool ETL_20_OffenseCodes(OracleDAL oracleDAL, MySqlDAL mySqlDAL, string offenseCodeExcelPath)
         {
             // As of 5-9-2018 - I have an Excel spreadsheet with PRIORS Offense Codes. Is this the source? On form there is a text box for Excel file.
             // As of 5-10-2018 - Teri sent updated DB and this inserted into the DB.
-            //Logging logging = new Logging();
             try
             {
                 string insertStatement = "";
@@ -103,7 +105,7 @@ namespace ETL._2___Helpers
                             string Code = dr[0].ToString();
                             string Name = dr[1].ToString();
 
-                            string Agency = dr[7].ToString(); // SHARED, SMP (Salem)
+                            string Agency = dr[7].ToString(); // SHARED, SMP (Salem), etc
 
                             if (Agency.ToString().ToLower() == "shared" || Agency.ToString().ToLower() == "smp")
                             {
@@ -136,8 +138,9 @@ namespace ETL._2___Helpers
                 return false;
             }
         }
-
-        public bool ETL_Offenses(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
+        #endregion
+        #region ETL_30_Offenses
+        public bool ETL_30_Offenses(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
             //Logging logging = new Logging();
             try
@@ -211,33 +214,30 @@ namespace ETL._2___Helpers
                 return false;
             }
         }
-
-        public bool ETL_Users(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
+        #endregion
+        #region ETL_40_Users
+        public bool ETL_40_Users(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
-            //Logging logging = new Logging();
             try
             {
                 // Oracle tables:
                 // EMPLOYEE
                 // MASTER_CODES
 
+                // SCB TODO: Use a CASE around RMS_LOCKED?
                 string selectStatement = "SELECT emp.CREATE_DATE, emp.CDCREATE_OPERID, emp.UPDATED_DATE, emp.CDOPERID, " +
                     "emp.SEQNUM, emp.FIRST_NAME, emp.SURNAME, emp.MIDDLE_NAME, emp.DOB, emp.SEX, mc.CODE_DESCRIPTION, " +
                     "emp.RANK, emp.RES_PHONE, emp.EMAIL, emp.BADGE_ID, emp.FOREIGN_SEQNUM, emp.EMPLOYEE_STATUS, emp.AGENCY, emp.RMS_LOCKED" +
-                    " FROM EMPLOYEE emp LEFT JOIN MASTER_CODES mc ON UPPER(emp.RANK) = UPPER(mc.CODE_VALUE) AND UPPER(mc.TABLE_ID) = 'RANK'";
+                    " FROM EMPLOYEE emp";
+                //" FROM EMPLOYEE emp LEFT JOIN MASTER_CODES mc ON UPPER(emp.RANK) = UPPER(mc.CODE_VALUE) AND UPPER(mc.TABLE_ID) = 'RANK'";
 
                 string insertStatement = "INSERT INTO migration_users (source_created_date, source_created_by, source_updated_date, source_updated_by, " +
                     "source_user_id, first_name, last_name, middle_name, date_of_birth, sex_attr_code, rank_attr_value, rank_attr_code, " +
-                    "phone_number, primary_email, badge_number, external_cad_id, duty_status_value, department_agency_name, is_disabled, " +
-                    "created_date_utc, created_by, updated_date_utc, updated_by) VALUES (";
-
-                // SCB TODO: Additional, non-nullable, migration table fields with no source. Using "source..." values for now, KEEP?:
-                // created_date_utc
-                // created_by  BigInt(20)
-                // updated_date_utc
-                // updated_by  BigInt(20)
+                    "phone_number, primary_email, badge_number, external_cad_id, duty_status_value, department_agency_name, " +
+                    "created_date_utc, created_by, updated_date_utc, updated_by, is_disabled) VALUES (";
 
                 string insertValues = "";
+                string sValue = "";
 
                 OracleDataReader dr = oracleDAL.ExecuteReader(selectStatement);
                 if (dr.HasRows)
@@ -247,8 +247,8 @@ namespace ETL._2___Helpers
                         // MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD HH:MM:SS' format
 
                         insertValues += "'" + FormatDateTimeForMySQL(dr["emp.CREATE_DATE"].ToString()) + "', ";
-                        insertValues += "'" + dr["semp.CDCREATE_OPERID"].ToString() + "', ";
-                        insertValues += "'" + FormatDateTimeForMySQL(dr["mp.UPDATED_DATE"].ToString()) + "', ";
+                        insertValues += "'" + dr["emp.CDCREATE_OPERID"].ToString() + "', ";
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["emp.UPDATED_DATE"].ToString()) + "', ";
                         insertValues += "'" + dr["emp.CDOPERID"].ToString() + "', ";
                         insertValues += "'" + dr["emp.SEQNUM"].ToString() + "', ";  // varchar
                         insertValues += "'" + dr["emp.FIRST_NAME"].ToString() + "', ";
@@ -256,8 +256,12 @@ namespace ETL._2___Helpers
                         insertValues += "'" + dr["emp.MIDDLE_NAME"].ToString() + "', ";
                         insertValues += "'" + FormatDateTimeForMySQL(dr["emp.DOB"].ToString()) + "', ";
                         insertValues += "'" + dr["emp.SEX"].ToString() + "', ";
-                        insertValues += "'" + dr["mc.CODE_DESCRIPTION"].ToString() + "', ";
+
+
+                        sValue = GetMasterCodeValue("RANK", "", dr["p.RANK"].ToString());
+                        insertValues += "'" + sValue + "', ";
                         insertValues += "'" + dr["emp.RANK"].ToString() + "', ";
+
                         insertValues += "'" + dr["emp.RES_PHONE"].ToString() + "', ";
                         insertValues += "'" + dr["emp.EMAIL"].ToString() + "', ";
                         insertValues += "'" + dr["emp.BADGE_ID"].ToString() + "', ";
@@ -265,10 +269,10 @@ namespace ETL._2___Helpers
                         insertValues += "'" + dr["emp.EMPLOYEE_STATUS"].ToString() + "', ";
                         insertValues += "'" + dr["emp.AGENCY"].ToString() + "', ";
 
-                        insertValues += "'" + FormatDateTimeForMySQL(dr["emp.CREATE_DATE"].ToString()) + "', ";
-                        insertValues += "'" + dr["semp.CDCREATE_OPERID"].ToString() + "', ";
-                        insertValues += "'" + FormatDateTimeForMySQL(dr["mp.UPDATED_DATE"].ToString()) + "', ";
-                        insertValues += "'" + dr["emp.CDOPERID"].ToString() + "', ";
+                        insertValues += "'" + currentDateTime + "', ";
+                        insertValues += "'" + defaultCreatedUpdatedBy + "', ";
+                        insertValues += "'" + currentDateTime + "', ";
+                        insertValues += "'" + defaultCreatedUpdatedBy + "', ";
 
                         insertValues += dr["emp.RMS_LOCKED"].ToString() + ")"; // tinyint - Last field, close with right parenthese..
 
@@ -295,10 +299,10 @@ namespace ETL._2___Helpers
                 return false;
             }
         }
-
-        public bool ETL_Locations(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
+        #endregion
+        #region ETL_50_Locations
+        public bool ETL_50_Locations(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
-            //Logging logging = new Logging();
             try
             {
                 // Oracle table:
@@ -309,14 +313,6 @@ namespace ETL._2___Helpers
                 string insertStatement = "INSERT INTO migration_locations (created_date_utc, created_by, updated_date_utc, updated_by, " +
                     "source_location_id, source_location_type, administrative_area_level_2) VALUES (";
 
-                // non-nullable, migration table fields with no source:
-                // created_date_utc
-                // created_by  BigInt(20)
-                // updated_date_utc
-                // updated_by  BigInt(20)
-                // source_location_id
-                // source_location_type
-
                 string insertValues = "";
 
                 OracleDataReader dr = oracleDAL.ExecuteReader(selectStatement);
@@ -324,10 +320,14 @@ namespace ETL._2___Helpers
                 {
                     while (dr.Read())
                     {
-                        // MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD HH:MM:SS' format
+                        insertValues += "'" + currentDateTime + "', ";
+                        insertValues += "'" + defaultCreatedUpdatedBy + "', ";
+                        insertValues += "'" + currentDateTime + "', ";
+                        insertValues += "'" + defaultCreatedUpdatedBy + "', ";
 
-                        // SCB TODO: Finish up insertValues here:
-                        insertValues += "'', "; // created_date_utc
+                        // SCB TODO: What values for thesde 2:
+                        insertValues += "'" + 1 + "', ";  // source_location_id ??
+                        insertValues += "'" + ' ' + "', ";  // source_location_type ??
 
                         insertValues += dr["COUNTY"].ToString() + ")"; // Last field, close with right parenthese..
 
@@ -355,33 +355,49 @@ namespace ETL._2___Helpers
                 return false;
             }
         }
-
-        public bool ETL_Names(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
+        #endregion
+        #region ETL_60_Names
+        public bool ETL_60_Names(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
             //Logging logging = new Logging();
             try
             {
                 // Oracle tables:
                 // PERSON
-                // MASTER_CODES
+                // MASTER_CODES - Many, many lookups.  Need to find efficient way...
 
                 string selectStatement = "SELECT p.CREATE_DATE, p.CDCREATE_OPERID, p.UPDATE_DATE, p.CDOPERID, p.SEQNUM, " +
-                    "p.FIRST_NAME, p.MIDDLE_NAME, p.SURNAME, p.SUFFIX, p.PREFIX, p.MONIKER, p.SSN, p.LICENSE " +
-                    "p.LIC_ENDORSEMENTS, p.DOB, mc.CODE_DESCRIPTION, p.BIRTH_PLACE " + 
-                    "" +
-                    "FROM PERSON p LEFT JOIN MASTER_CODES mc ON p.BIRTH_PLACE = mc.CODE_DESCRIPTION WHERE UPPER(mc.TABLE_ID) = 'STATE'";
+                    "p.FIRST_NAME, p.MIDDLE_NAME, p.SURNAME, p.SUFFIX, p.PREFIX, p.MONIKER, p.SSN, p.LICENSE, " +
+                    "p.LIC_ENDORSEMENTS, p.DOB, mc.CODE_DESCRIPTION, p.BIRTH_PLACE, p.DECEASED, p.REMARKS, p.WEIGHT, p.TO_WEIGHT, " +
+                    "p.HEIGHT, p.TO_HEIGHT, p.CITIZENSHIP, p.MARITAL, p.FBI_ID, p.STATE_ID, p.NCIC_PRINT, p.BUILD, p.EYE, p.SEX, " +
+                    "p.ETHNICITY, p.RACE, p.COMPLEXION, p.RES_PHONE, p,BUS_PHONE, p.CELL_PHONE, p.EMAIL, p.EMANCIPATION_DATE, " +
+                    "p.HAIR_STYLE, p.HAIR_LENGTH, p.HAIR, p.FACIAL_HAIR, p.ALRT_NOTES, p.SMT, p.RECORD_TYPE, p.SURNAME, p.BUSINESS_TYPE, " +
+                    "p.TEETH" +
+                    "FROM PERSON p";
+                //"FROM PERSON p LEFT JOIN MASTER_CODES mc ON p.BIRTH_PLACE = mc.CODE_DESCRIPTION WHERE UPPER(mc.TABLE_ID) = 'STATE'";
 
+                // SCB TODO: No insert fields for p.SMT - these go right afteer caution_attr_code -> end of 11th line below.
                 string insertStatement = "INSERT INTO migration_names (created_date_utc, created_by, updated_date_utc, updated_by, " +
                     "source_name_id, source_master_name_id, source_owner_id, source_owner_type, " +
                     "first_name, middle_name, last_name, suffix, title, nickname_1, ssn, drivers_license_number, " +
-                    "drivers_license_endorsement_attr_code, date_of_birth, birth_state_attr_value, birth_state_attr_code ) VALUES (";
-
-                // non-nullable, migration table fields with no source:
-
-                // source_owner_id
-                // source_owner_type
+                    "drivers_license_endorsement_attr_code, date_of_birth, birth_state_attr_value, birth_state_attr_code, date_of_death, " +
+                    "details, weight, weight_range_min, weight_range_max, height, height_range_min, height_range_max, " +
+                    "citizenship_attr_value, citizenship_attr_code, marital_status_attr_value, marital_status_attr_code, " +
+                    "fbi_ucn, state_id_number, fingerprint_id, build_attr_value, build_attr_code, eye_color_attr_value, eye_color_attr_code, " +
+                    "sex_attr_value, sex_attr_code, ethnicity_attr_value, ethnicity_attr_code, race_attr_value, race_attr_code, " +
+                    "skin_tone_attr_value, skin_tone_attr_code, phone_number_home, phone_number_work, phone_number_mobile, email_home, " +
+                    "date_of_emancipation, hair_style_attr_value, hair_style_attr_code, hair_length_attr_value, hair_length_attr_code, " +
+                    "hair_color_attr_value, hair_color_attr_code, facial_hair_type_attr_value, facial_hair_type_attr_code, caution_attr_code, " +
+                    "type, organization_name, organization_type_global_attr, physical_characteristic_teeth_attr_code, physical_characteristic_teeth_attr_value" + 
+                    ") VALUES (";
 
                 string insertValues = "";
+                string semiColonList = "";
+                List<string> listOfValues = null;
+                string sValue = "";
+                int iPos = 0;
+                string sValueLeft = "";
+                string sValueRight = "";
 
                 OracleDataReader dr = oracleDAL.ExecuteReader(selectStatement);
                 if (dr.HasRows)
@@ -390,8 +406,6 @@ namespace ETL._2___Helpers
                     {
                         // MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD HH:MM:SS' format
 
-                        // SCB TODO: Finish up insertValues here, many MASTER_CODE lookups to do. Create function for these?:
-
                         insertValues += "'" + FormatDateTimeForMySQL(dr["p.CREATE_DATE"].ToString()) + "', ";
                         insertValues += "'" + dr["p.CDCREATE_OPERID"].ToString() + "', ";
                         insertValues += "'" + FormatDateTimeForMySQL(dr["p.UPDATED_DATE"].ToString()) + "', ";
@@ -399,8 +413,9 @@ namespace ETL._2___Helpers
                         insertValues += "'" + dr["p.SEQNUM"].ToString() + "', ";
                         insertValues += "'" + dr["p.SEQNUM"].ToString() + "', ";
 
-                        insertValues += "'" + dr["?"].ToString() + "', ";  // source_owner_id
-                        insertValues += "'" + dr["?"].ToString() + "', ";  // source_owner_type
+                        // SCB TODO: What values for thesde 2:
+                        insertValues += "'" + 1 + "', ";  // source_owner_id - non-nullable
+                        insertValues += "'" + ' ' + "', ";  // source_owner_type - non-nullable
 
                         insertValues += "'" + dr["p.FIRST_NAME"].ToString() + "', ";
                         insertValues += "'" + dr["p.MIDDLE_NAME"].ToString() + "', ";
@@ -413,8 +428,121 @@ namespace ETL._2___Helpers
                         insertValues += "'" + dr["p.LIC_ENDORSEMENTS"].ToString() + "', ";
                         insertValues += "'" + dr["p.DOB"].ToString() + "', ";
                         insertValues += "'" + dr["mc.CODE_DESCRIPTION"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("STATE", "", dr["p.BIRTH_PLACE"].ToString());
+                        insertValues += "'" + sValue + "', ";
                         insertValues += "'" + dr["p.BIRTH_PLACE"].ToString() + "', ";
 
+                        insertValues += "'" + dr["p.DECEASED"].ToString() + "', ";
+                        insertValues += "'" + dr["p.REMARKS"].ToString() + "', ";
+                        insertValues += "'" + dr["p.WEIGHT"].ToString() + "', ";
+                        insertValues += "'" + dr["p.WEIGHT"].ToString() + "', ";  // weight min
+                        insertValues += "'" + dr["p.TO_WEIGHT"].ToString() + "', ";
+                        insertValues += "'" + dr["p.HEIGHT"].ToString() + "', ";
+                        insertValues += "'" + dr["p.HEIGHT"].ToString() + "', ";  // height min
+                        insertValues += "'" + dr["p.TO_HEIGHT"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("NCIC-Country", "", dr["p.CITIZENSHIP"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.CITIZENSHIP"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("MARITAL", "", dr["p.MARITAL"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.MARITAL"].ToString() + "', ";
+
+                        insertValues += "'" + dr["p.FBI_ID"].ToString() + "', ";
+                        insertValues += "'" + dr["p.STATE_ID"].ToString() + "', ";
+                        insertValues += "'" + dr["p.NCIC_PRINT"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("BUILD", "", dr["p.BUILD"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.BUILD"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("EYECOL", "", dr["p.EYE"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.EYE"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("SEX", "", dr["p.SEX"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.SEX"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("ETHNIC", "", dr["p.ETHNICITY"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.ETHNICITY"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("RACE", "", dr["p.RACE"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.RACE"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("COMPLEX", "", dr["p.COMPLEXION"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.COMPLEXION"].ToString() + "', ";
+
+                        insertValues += "'" + dr["p.RES_PHONE"].ToString() + "', ";
+                        insertValues += "'" + dr["p.BUS_PHONE"].ToString() + "', ";
+                        insertValues += "'" + dr["p.CELL_PHONE"].ToString() + "', ";
+                        insertValues += "'" + dr["p.EMAIL"].ToString() + "', ";
+
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["p.EMANCIPATION_DATE"].ToString()) + "', ";
+
+                        sValue = GetMasterCodeValue("HAIR STYLE", "", dr["p.HAIR_STYLE"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.HAIR_STYLE"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("HAIRLENGTH", "", dr["p.HAIR_LENGTH"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.HAIR_LENGTH"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("HAIRCOL", "", dr["p.HAIR"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.HAIR"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("FACIAL HAIR", "", dr["p.FACIAL_HAIR"].ToString());
+                        insertValues += "'" + sValue + "', ";
+                        insertValues += "'" + dr["p.FACIAL_HAIR"].ToString() + "', ";
+
+                        insertValues += "'" + dr["p.ALRT_NOTES"].ToString() + "', ";
+
+
+                        // NOTES From Adam Kinch:
+                        // First, the PERSON.SMT code must be parsed into separate values, then each value can be sub - queried in the Master Codes table.
+                        // "SQL FILTER: table_id = 'SMT' AND code_value = [[parsed SMT code]]"
+                        // Multipick field. Each SMT code is separated by a ";" character   
+                        // ...and if a description is included, it is after the code, separated by a ":" character. 
+                        // Example: ;TAT L CHK:Bald Eagle;PRCD NOSE:;SC BACK:Surgical Scar;MC BEHAVIO:Bi-Polar disorder
+
+                        // INTO: physical_characteristic_appearance_attr_value & physical_characteristic_appearance_attr_code
+                        // AND behavioral_characteristic_attr_value & behavioral_characteristic_attr_code
+
+                        semiColonList = dr["p.SMT"].ToString();
+                        listOfValues = semiColonList.Split(';').ToList<string>();
+                        foreach (string s in listOfValues)
+                        {
+                            iPos = s.IndexOf(":");
+                            sValueLeft = s.Substring(0, iPos);
+                            sValueRight = s.Substring(iPos + 1, s.Length - iPos - 1);
+
+                            sValue = GetMasterCodeValue("SMT", "", sValueLeft);
+
+                            // SCB TODO: Now what? We don't want multiple names rows for all these.
+                        }
+
+
+
+                        insertValues += "'" + dr["p.RECORD_TYPE"].ToString() + "', ";
+                        insertValues += "'" + dr["p.SURNAME"].ToString() + "', ";
+                        insertValues += "'" + dr["p.BUSINESS_TYPE"].ToString() + "', ";
+
+                        insertValues += "'" + dr["p.TEETH"].ToString() + "', ";
+
+                        sValue = GetMasterCodeValue("TEETH", "", dr["p.TEETH"].ToString());
+                        insertValues += "'" + sValue + "', ";
+
+
+
+
+                        // SCB TODO: Finish up:
+                        // More lookups, but have questions before continuing. Also see note on last field, RESIDENT. May come from different table.
 
 
                         insertValues += dr[""].ToString() + ")"; // Last field, close with right parenthese..
@@ -443,12 +571,82 @@ namespace ETL._2___Helpers
                 return false;
             }
         }
-
+        #endregion
+        // Remaining: Reports, Items, Evidence, Cases, Attachments, Legacy Details (Other)
+        #region Helpers
         public DateTime FormatDateTimeForMySQL(string incomingDateTime)
         {
             return DateTime.Parse(incomingDateTime);
         }
 
+        public bool BuildMasterCodeDataView(string filePath)
+        {
+            try
+            {
+                string sqlQuery = "Select * From [PRIORS Reference Values$]";
+                DataSet ds = new DataSet();
+                string constring = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + filePath + ";Extended Properties=\"Excel 12.0;HDR=YES;\"";
+                OleDbConnection con = new OleDbConnection(constring + "");
+                OleDbDataAdapter da = new OleDbDataAdapter(sqlQuery, con);
+                da.Fill(ds);
+                DataTable dt = ds.Tables[0];
+                vMasterCodes = new DataView(dt);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logging.WriteEvent("Error in MasterTableCreate. " + ex.Message);
+                return false;
+            }
+
+        }
+
+        public string GetMasterCodeValue(string tableId, string tableCode = "", string tableDescription = "", string agency = "")
+        {
+            try
+            {
+                DataView dvSearch = vMasterCodes;
+                string sValue = "";
+
+                if ((tableDescription == "" & agency == "") | (tableDescription != "" & agency != ""))
+                {
+                    sValue = "MC:PARAM ERROR";
+                }
+                else
+                { 
+                    if (tableDescription == "")
+                    { 
+                        if (agency == "")
+                        { 
+                            dvSearch.RowFilter = "TABLE_ID = '" + tableId + "' AND [CODE VALUE] = '" + tableCode + "'";
+                        }
+                        else
+                        { 
+                            dvSearch.RowFilter = "TABLE_ID = '" + tableId + "' AND [CODE VALUE] = '" + tableCode + "' AND AGENCY = '" + agency + "'";
+                        }
+                        sValue = dvSearch[0][2].ToString();
+                    }
+                    else // 
+                    { 
+                        if (agency == "")
+                        { 
+                            dvSearch.RowFilter = "TABLE_ID = '" + tableId + "' AND [CODE DESCRIPTION] = '" + tableDescription + "'";
+                        }
+                        else
+                        {
+                            dvSearch.RowFilter = "TABLE_ID = '" + tableId + "' AND [CODE DESCRIPTION] = '" + tableDescription + "' AND AGENCY = '" + agency + "'";
+                         }
+                        sValue = dvSearch[0][1].ToString();
+                    }
+                }
+                return sValue;
+            }
+            catch (Exception)
+            {
+                return "MC:NOT FOUND";
+            }
+        }
+        #endregion
         #region LoopTesting
         public bool ELT_Stage_1()
         {
