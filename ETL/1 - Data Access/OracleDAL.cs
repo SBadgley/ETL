@@ -18,22 +18,22 @@ namespace DataAccessLayer_NET_Framework_
         public static OracleDAL objOracleDAL = null;
         public OracleConnection objOracleConnection = null;
 
-        public string ConnectionStringProperty { get; set; } = "";
+        //public string ConnectionStringProperty { get; set; } = "";
         public string SqlCommandProperty { get; set; } = "";
         public int CommandTimeoutOverride { get; set; } = 30;
-        public int AppEnvironment { get; set; } = 1;
-        public int LoggingLevel { get; set; } = 1;
+        //public int AppEnvironment { get; set; } = 1;
+        //public int LoggingLevel { get; set; } = 1;
 
         public enum EnumLoggingLevel { NoLogging = 0, MinimalLogging = 1, FullLogging = 2 };
 
-        public OracleDAL(string connectionString = "")
+        public OracleDAL(string connectionString)
         {
-            //ConnectionStringProperty = ConfigurationManager.AppSettings.Get("OracleSourceConnString");
-            LoggingLevel = (int)EnumLoggingLevel.FullLogging;
+            ////ConnectionStringProperty = ConfigurationManager.AppSettings.Get("OracleSourceConnString");
+            //LoggingLevel = (int)EnumLoggingLevel.FullLogging;
 
-            ConnectionStringProperty = ConfigurationManager.AppSettings["OracleConnectionString"];
+            //ConnectionStringProperty = ConfigurationManager.AppSettings["OracleConnectionString"];
 
-            OracleConnection objOracleConnection = new OracleConnection(ConnectionStringProperty);
+            OracleConnection objOracleConnection = new OracleConnection(connectionString);
             if (OracleConnection.IsAvailable)  
             {
                 objOracleConnection.Open();

@@ -33,21 +33,12 @@ namespace ETL._2___Helpers
             return valueOut;
         }
 
-
-        // ref_migration_duty_status - Has a dozen rows (id, name)
-
         public bool BuildDictionaries()
         {
-
+            // SCB TODO: Remove all this if not using.
             try
             {
-                MySqlDAL mySqlDAL = new MySqlDAL("")
-                {
-                    LoggingLevel = 2,
-                    UserID = "sbadgley",
-                    Password = "2010Camaro!ZL1UPED",
-                    DatabaseName = "migration"
-                };
+                MySqlDAL mySqlDAL = new MySqlDAL("");
 
                 Dictionaries dicts = new Dictionaries();
 

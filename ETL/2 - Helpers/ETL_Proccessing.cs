@@ -14,14 +14,59 @@ namespace ETL._2___Helpers
 {
     public class ETL_Proccessing
     {
+        string currentDateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        string defaultCreatedUpdatedBy = "1";
+
         int iInsertCount = 0;
+        int iInsertErrorCount = 0;
+        Logging logging = new Logging();
+
         public bool ETL_Atrributes(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
-            Logging logging = new Logging();
+            //Logging logging = new Logging();
             try
             {
                 // Where to get the attributes??  MASTER_CODES.CODE_DESCRIPTION?? From spreadsheet, appears maybe so.  Need Oracle access to see.
 
+                string selectStatement = "SELECT ?? FROM ??";
+
+                string insertStatement = 
+                    "INSERT INTO migration_attributes (source_created_date, source_created_by, source_updated_date, source_updated_by, " +
+                    "created_date, created_by, updated_date, updated_by, " + 
+                    "source_attribute_id, attribute_type, display_abbreviation, display_value) VALUES ";
+
+                string insertValues = "";
+
+                OracleDataReader dr = oracleDAL.ExecuteReader(selectStatement);
+                if (dr.HasRows)
+                {
+                    while (dr.Read())
+                    {
+                        // MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD HH:MM:SS' format
+
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["CREATE_DATE"].ToString()) + "', "; // Defaults to current DT, so remove?
+                        insertValues += "'" + dr[".CDCREATE_OPERID"].ToString() + "', ";
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["UPDATED_DATE"].ToString()) + "', "; // Defaults to current DT, so remove?
+                        insertValues += "'" + dr["CDOPERID"].ToString() + "', ";
+
+                        insertValues += "'" + dr[""].ToString() + "', ";  
+
+                        insertValues += dr[""].ToString() + ")"; // Last field, close with right parenthese..
+
+                        insertStatement += insertValues;
+
+                        if (mySqlDAL.ExecuteNonQuery(insertStatement))
+                        {
+                            iInsertCount += 1;
+                        }
+                        else
+                        {
+                            iInsertErrorCount = +1;
+                        }
+                    }
+                }
+                mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
+                    "VALUES ('" + currentDateTime + "', 'Attributes copied.', '" + iInsertCount + " rows copied, " + iInsertErrorCount + " rows had errors.', '')");
 
                 return true;
             }
@@ -35,22 +80,14 @@ namespace ETL._2___Helpers
         public bool ETL_OffenseCodes(OracleDAL oracleDAL, MySqlDAL mySqlDAL, string offenseCodeExcelPath)
         {
             // As of 5-9-2018 - I have an Excel spreadsheet with PRIORS Offense Codes. Is this the source? On form there is a text box for Excel file.
-            Logging logging = new Logging();
+            // As of 5-10-2018 - Teri sent updated DB and this inserted into the DB.
+            //Logging logging = new Logging();
             try
             {
-                // SCB TODO: What is the 1) destination table, 2) fields, 3) description, 4) check other columns (Deactivated?), 5) more??
-                // Table: ref_nibrs_offense_codes:
-                // code char(3) not nullable
-                // name varchar(128) not nullable
-                // description varchar(512) not nullable
-
                 string insertStatement = "";
-
-                // txtOffenseExcelFile.Text
-
+                // NOTE: Paths with spaces are acceptable.
                 string excelConnString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + offenseCodeExcelPath + ";" +
                                          @"Extended Properties='Excel 8.0;HDR=Yes;'";
-
                 // Older Excel Provider:
                 //string excelConnString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Users\sbadgley\Documents\Documentation\Mark43\PRIORS_Offense_Codes.xlsx;" +
                 //         @"Extended Properties='Excel 8.0;HDR=Yes;'";
@@ -70,19 +107,26 @@ namespace ETL._2___Helpers
 
                             if (Agency.ToString().ToLower() == "shared" || Agency.ToString().ToLower() == "smp")
                             {
-                                insertStatement = "INSERT INTO migration_offense_codes (code, name, description) " + 
-                                    "VALUES ('" + Code + "', '" + Name + "', '" + Name + "')";
+                                insertStatement = "INSERT INTO migration_offense_codes (created_date, created_by, updated_date, updated_by, " +
+                                    "source_offense_code_id, offense_name, active_date) " +
+                                    "VALUES ('" + currentDateTime + "', '" + defaultCreatedUpdatedBy + "', '" + currentDateTime + "', '" + defaultCreatedUpdatedBy + 
+                                    "', '" + Code + "', '" + Name + "', '" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "')";
 
-                                iInsertCount += 1;
-                                // SCB TODO: migration_offense_codes table doen't exist in my current DB/Schema. So insert commented out.
-                                //mySqlDAL.ExecuteNonQuery(insertStatement);
+                                if (mySqlDAL.ExecuteNonQuery(insertStatement))
+                                {
+                                    iInsertCount += 1;
+                                }
+                                else
+                                {
+                                    iInsertErrorCount = +1;
+                                }
                             }
 
                         }
                     }
                 }
                 mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
-                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Offense codes copied.', '" + iInsertCount + " rows copied.', '')");
+                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Offense codes copied.', '" + iInsertCount + " rows copied, " + iInsertErrorCount + " rows had errors.', '')");
 
                 return true;
             }
@@ -95,7 +139,7 @@ namespace ETL._2___Helpers
 
         public bool ETL_Offenses(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
-            Logging logging = new Logging();
+            //Logging logging = new Logging();
             try
             {
                 //string selectStatement = "SELECT * FROM INVOLVEMENTS inv JOIN INCIDENT inc ON " +
@@ -146,9 +190,17 @@ namespace ETL._2___Helpers
                 //          Individually, use these to look up MASTER_CODES where table_id = 'USEOFFORCE' AND code_value = [[parsed use of force code]]
 
 
-                //iInsertCount = +1;
+                //if (mySqlDAL.ExecuteNonQuery(insertStatement))
+                //{
+                //    iInsertCount += 1;
+                //}
+                //else
+                //{
+                //    iInsertErrorCount = +1;
+                //}
+
                 //mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
-                //    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Offenses copied.', '" + iInsertCount + " rows copied.', '')");
+                //    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Offenses copied.', '" + iInsertCount + " rows copied, " + iInsertErrorCount + " rows had errors.', '')");
 
 
                 return true;
@@ -162,14 +214,14 @@ namespace ETL._2___Helpers
 
         public bool ETL_Users(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
-            Logging logging = new Logging();
+            //Logging logging = new Logging();
             try
             {
                 // Oracle tables:
                 // EMPLOYEE
                 // MASTER_CODES
 
-                string selectStatement = "SELECT emp.CREATE_DATE, emp.CDCREATE_OPERID, emp.UPDATED_DTAE, emp.CDOPERID, " +
+                string selectStatement = "SELECT emp.CREATE_DATE, emp.CDCREATE_OPERID, emp.UPDATED_DATE, emp.CDOPERID, " +
                     "emp.SEQNUM, emp.FIRST_NAME, emp.SURNAME, emp.MIDDLE_NAME, emp.DOB, emp.SEX, mc.CODE_DESCRIPTION, " +
                     "emp.RANK, emp.RES_PHONE, emp.EMAIL, emp.BADGE_ID, emp.FOREIGN_SEQNUM, emp.EMPLOYEE_STATUS, emp.AGENCY, emp.RMS_LOCKED" +
                     " FROM EMPLOYEE emp LEFT JOIN MASTER_CODES mc ON UPPER(emp.RANK) = UPPER(mc.CODE_VALUE) AND UPPER(mc.TABLE_ID) = 'RANK'";
@@ -194,40 +246,46 @@ namespace ETL._2___Helpers
                     {
                         // MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD HH:MM:SS' format
 
-                        insertValues += "'" + FormatDateTimeForMySQL(dr["source_created_date"].ToString()) + "', ";
-                        insertValues += "'" + dr["source_created_by"].ToString() + "', ";
-                        insertValues += "'" + FormatDateTimeForMySQL(dr["source_updated_date"].ToString()) + "', ";
-                        insertValues += "'" + dr["source_updated_by"].ToString() + "', ";
-                        insertValues += "'" + dr["source_user_id"].ToString() + "', ";  // varchar
-                        insertValues += "'" + dr["first_name"].ToString() + "', ";
-                        insertValues += "'" + dr["last_name"].ToString() + "', ";
-                        insertValues += "'" + dr["middle_name"].ToString() + "', ";
-                        insertValues += "'" + FormatDateTimeForMySQL(dr["date_of_birth"].ToString()) + "', ";
-                        insertValues += "'" + dr["sex_attr_code"].ToString() + "', ";
-                        insertValues += "'" + dr["rank_attr_value"].ToString() + "', ";
-                        insertValues += "'" + dr["rank_attr_code"].ToString() + "', ";
-                        insertValues += "'" + dr["phone_number"].ToString() + "', ";
-                        insertValues += "'" + dr["primary_email"].ToString() + "', ";
-                        insertValues += "'" + dr["badge_number"].ToString() + "', ";
-                        insertValues += "'" + dr["external_cad_id"].ToString() + "', ";
-                        insertValues += "'" + dr["duty_status_value"].ToString() + "', ";
-                        insertValues += "'" + dr["department_agency_name"].ToString() + "', ";
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["emp.CREATE_DATE"].ToString()) + "', ";
+                        insertValues += "'" + dr["semp.CDCREATE_OPERID"].ToString() + "', ";
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["mp.UPDATED_DATE"].ToString()) + "', ";
+                        insertValues += "'" + dr["emp.CDOPERID"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.SEQNUM"].ToString() + "', ";  // varchar
+                        insertValues += "'" + dr["emp.FIRST_NAME"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.SURNAME"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.MIDDLE_NAME"].ToString() + "', ";
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["emp.DOB"].ToString()) + "', ";
+                        insertValues += "'" + dr["emp.SEX"].ToString() + "', ";
+                        insertValues += "'" + dr["mc.CODE_DESCRIPTION"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.RANK"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.RES_PHONE"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.EMAIL"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.BADGE_ID"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.FOREIGN_SEQNUM"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.EMPLOYEE_STATUS"].ToString() + "', ";
+                        insertValues += "'" + dr["emp.AGENCY"].ToString() + "', ";
 
-                        insertValues += "'" + FormatDateTimeForMySQL(dr["source_created_date"].ToString()) + "', ";
-                        insertValues += "'" + dr["source_created_by"].ToString() + "', ";
-                        insertValues += "'" + FormatDateTimeForMySQL(dr["source_updated_date"].ToString()) + "', ";
-                        insertValues += "'" + dr["source_updated_by"].ToString() + "', ";
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["emp.CREATE_DATE"].ToString()) + "', ";
+                        insertValues += "'" + dr["semp.CDCREATE_OPERID"].ToString() + "', ";
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["mp.UPDATED_DATE"].ToString()) + "', ";
+                        insertValues += "'" + dr["emp.CDOPERID"].ToString() + "', ";
 
-                        insertValues += dr["is_disabled"].ToString() + ")"; // tinyint - Last field, close with right parenthese..
+                        insertValues += dr["emp.RMS_LOCKED"].ToString() + ")"; // tinyint - Last field, close with right parenthese..
 
                         insertStatement += insertValues;
 
-                        mySqlDAL.ExecuteNonQuery(insertStatement);
-                        iInsertCount += 1;
+                        if (mySqlDAL.ExecuteNonQuery(insertStatement))
+                        {
+                            iInsertCount += 1;
+                        }
+                        else
+                        {
+                            iInsertErrorCount = +1;
+                        }
                     }
                 }
                 mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
-                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Users copied.', '" + iInsertCount + " rows copied.', '')");
+                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Users copied.', '" + iInsertCount + " rows copied, " + iInsertErrorCount + " rows had errors.', '')");
 
                 return true;
             }
@@ -240,7 +298,7 @@ namespace ETL._2___Helpers
 
         public bool ETL_Locations(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
-            Logging logging = new Logging();
+            //Logging logging = new Logging();
             try
             {
                 // Oracle table:
@@ -269,19 +327,25 @@ namespace ETL._2___Helpers
                         // MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD HH:MM:SS' format
 
                         // SCB TODO: Finish up insertValues here:
-                        insertValues += "'', ";
+                        insertValues += "'', "; // created_date_utc
 
                         insertValues += dr["COUNTY"].ToString() + ")"; // Last field, close with right parenthese..
 
                         insertStatement += insertValues;
 
-                        mySqlDAL.ExecuteNonQuery(insertStatement);
-                        iInsertCount += 1;
+                        if (mySqlDAL.ExecuteNonQuery(insertStatement))
+                        {
+                            iInsertCount += 1;
+                        }
+                        else
+                        {
+                            iInsertErrorCount = +1;
+                        }
                     }
                 }
 
                 mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
-                        "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Locations copied.', '" + iInsertCount + " rows copied.', '')");
+                        "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Locations copied.', '" + iInsertCount + " rows copied, " + iInsertErrorCount + " rows had errors.', '')");
 
                 return true;
             }
@@ -294,26 +358,26 @@ namespace ETL._2___Helpers
 
         public bool ETL_Names(OracleDAL oracleDAL, MySqlDAL mySqlDAL)
         {
-            Logging logging = new Logging();
+            //Logging logging = new Logging();
             try
             {
                 // Oracle tables:
                 // PERSON
                 // MASTER_CODES
 
-                string selectStatement = "SELECT * FROM PERSON";
+                string selectStatement = "SELECT p.CREATE_DATE, p.CDCREATE_OPERID, p.UPDATE_DATE, p.CDOPERID, p.SEQNUM, " +
+                    "p.FIRST_NAME, p.MIDDLE_NAME, p.SURNAME, p.SUFFIX, p.PREFIX, p.MONIKER, p.SSN, p.LICENSE " +
+                    "p.LIC_ENDORSEMENTS, p.DOB, mc.CODE_DESCRIPTION, p.BIRTH_PLACE " + 
+                    "" +
+                    "FROM PERSON p LEFT JOIN MASTER_CODES mc ON p.BIRTH_PLACE = mc.CODE_DESCRIPTION WHERE UPPER(mc.TABLE_ID) = 'STATE'";
 
                 string insertStatement = "INSERT INTO migration_names (created_date_utc, created_by, updated_date_utc, updated_by, " +
-                    "source_name_id, source_master_name_id, source_owner_id, source_owner_type, " + 
-                    ") VALUES (";
+                    "source_name_id, source_master_name_id, source_owner_id, source_owner_type, " +
+                    "first_name, middle_name, last_name, suffix, title, nickname_1, ssn, drivers_license_number, " +
+                    "drivers_license_endorsement_attr_code, date_of_birth, birth_state_attr_value, birth_state_attr_code ) VALUES (";
 
                 // non-nullable, migration table fields with no source:
-                // created_date_utc
-                // created_by  BigInt(20)
-                // updated_date_utc
-                // updated_by  BigInt(20)
-                // source_name_id  VarChar(32)
-                // source_master_name_id  BigInt(20)
+
                 // source_owner_id
                 // source_owner_type
 
@@ -326,19 +390,50 @@ namespace ETL._2___Helpers
                     {
                         // MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD HH:MM:SS' format
 
-                        // SCB TODO: Finish up insertValues here:
+                        // SCB TODO: Finish up insertValues here, many MASTER_CODE lookups to do. Create function for these?:
+
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["p.CREATE_DATE"].ToString()) + "', ";
+                        insertValues += "'" + dr["p.CDCREATE_OPERID"].ToString() + "', ";
+                        insertValues += "'" + FormatDateTimeForMySQL(dr["p.UPDATED_DATE"].ToString()) + "', ";
+                        insertValues += "'" + dr["p.CDOPERID"].ToString() + "', ";
+                        insertValues += "'" + dr["p.SEQNUM"].ToString() + "', ";
+                        insertValues += "'" + dr["p.SEQNUM"].ToString() + "', ";
+
+                        insertValues += "'" + dr["?"].ToString() + "', ";  // source_owner_id
+                        insertValues += "'" + dr["?"].ToString() + "', ";  // source_owner_type
+
+                        insertValues += "'" + dr["p.FIRST_NAME"].ToString() + "', ";
+                        insertValues += "'" + dr["p.MIDDLE_NAME"].ToString() + "', ";
+                        insertValues += "'" + dr["p.SURNAME"].ToString() + "', ";
+                        insertValues += "'" + dr["p.SUFFIX"].ToString() + "', ";
+                        insertValues += "'" + dr["p.PREFIX"].ToString() + "', ";
+                        insertValues += "'" + dr["p.MONIKER"].ToString() + "', ";
+                        insertValues += "'" + dr["p.SSN"].ToString() + "', ";
+                        insertValues += "'" + dr["p.LICENSE"].ToString() + "', ";
+                        insertValues += "'" + dr["p.LIC_ENDORSEMENTS"].ToString() + "', ";
+                        insertValues += "'" + dr["p.DOB"].ToString() + "', ";
+                        insertValues += "'" + dr["mc.CODE_DESCRIPTION"].ToString() + "', ";
+                        insertValues += "'" + dr["p.BIRTH_PLACE"].ToString() + "', ";
+
+
 
                         insertValues += dr[""].ToString() + ")"; // Last field, close with right parenthese..
 
                         insertStatement += insertValues;
 
-                        mySqlDAL.ExecuteNonQuery(insertStatement);
-                        iInsertCount += 1;
+                        if (mySqlDAL.ExecuteNonQuery(insertStatement))
+                        {
+                            iInsertCount += 1;
+                        }
+                        else
+                        {
+                            iInsertErrorCount = +1;
+                        }
                     }
                 }
 
                 mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
-                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Names copied.', '" + iInsertCount + " rows copied.', '')");
+                    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Names copied.', '" + iInsertCount + " rows copied, " + iInsertErrorCount + " rows had errors.', '')");
 
                 return true;
             }
@@ -353,6 +448,7 @@ namespace ETL._2___Helpers
         {
             return DateTime.Parse(incomingDateTime);
         }
+
         #region LoopTesting
         public bool ELT_Stage_1()
         {
@@ -380,27 +476,27 @@ namespace ETL._2___Helpers
 
                 MySqlDAL mySqlSELECT = new MySqlDAL()  // mySqlConnString
                 {
-                    LoggingLevel = 2,
-                    UserID = "sbadgley",
-                    Password = "2010Camaro!ZL1UPED",
-                    DatabaseName = "migration"
+                    //LoggingLevel = 2,
+                    //UserID = "sbadgley",
+                    //Password = "2010Camaro!ZL1UPED",
+                    //DatabaseName = "migration"
                 };
 
 
                 MySqlDAL mySqlINSERT = new MySqlDAL() // mySqlConnString
                 {
-                    LoggingLevel = 2,
-                    UserID = "sbadgley",
-                    Password = "2010Camaro!ZL1UPED",
-                    DatabaseName = "migration"
+                    //LoggingLevel = 2,
+                    //UserID = "sbadgley",
+                    //Password = "2010Camaro!ZL1UPED",
+                    //DatabaseName = "migration"
                 };
 
                 MySqlDAL mySql = new MySqlDAL() // mySqlConnString
                 {
-                    LoggingLevel = 2,
-                    UserID = "sbadgley",
-                    Password = "2010Camaro!ZL1UPED",
-                    DatabaseName = "migration"
+                    //LoggingLevel = 2,
+                    //UserID = "sbadgley",
+                    //Password = "2010Camaro!ZL1UPED",
+                    //DatabaseName = "migration"
                 };
 
                 //Dictionaries dicts = new Dictionaries();
