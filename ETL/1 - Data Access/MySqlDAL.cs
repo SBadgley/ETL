@@ -77,6 +77,41 @@ namespace DataAccessLayer_NET_Framework_
             }
         }
 
+        public int ExecuteScalar(string executeString)
+        {
+            if (OpenConnection())
+            {
+                MySqlCommand mySqlComm = new MySqlCommand
+                {
+                    CommandType = CommandType.Text,
+                    CommandText = executeString,
+                    Connection = MySqlConn
+                };
+                object oScalarValue = -1;
+                int iScalarInt = -1;
+                try
+                {
+                    oScalarValue = mySqlComm.ExecuteScalar();
+                    iScalarInt = Convert.ToInt32(oScalarValue); 
+                    logging.WriteEvent("ExecuteScalar called. Statement = " + executeString);
+                    return iScalarInt;
+
+
+                    //iScalarValue = (int)mySqlComm.ExecuteScalar();
+                    //return iScalarValue;
+                }
+                catch (Exception ex)
+                {
+                    logging.WriteEvent("Error in ExecuteNonQuery. " + ex.Message);
+                    return iScalarInt;
+                }
+            }
+            else
+            {
+                logging.WriteEvent("Error in ExecuteNonQuery. Could not connect to database.");
+                return - 1;
+            }
+        }
         public MySqlDataReader ExecuteDataReader(string executeString)
         {
             if (OpenConnection())

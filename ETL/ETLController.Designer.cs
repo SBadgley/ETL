@@ -30,9 +30,10 @@
         {
             this.ListBoxInfo = new System.Windows.Forms.ListBox();
             this.gbDataEntities = new System.Windows.Forms.GroupBox();
+            this.chkLegacyOther = new System.Windows.Forms.CheckBox();
             this.btnSelectOffenseExcel = new System.Windows.Forms.Button();
             this.txtOffenseExcelFile = new System.Windows.Forms.TextBox();
-            this.chkLegacyOther = new System.Windows.Forms.CheckBox();
+            this.chkLegacyAttachments = new System.Windows.Forms.CheckBox();
             this.chkAttachments = new System.Windows.Forms.CheckBox();
             this.chkCases = new System.Windows.Forms.CheckBox();
             this.chkEvidence = new System.Windows.Forms.CheckBox();
@@ -47,13 +48,14 @@
             this.btnRUNMigration = new System.Windows.Forms.Button();
             this.openOffenseExcelFile = new System.Windows.Forms.OpenFileDialog();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.lblDataDictionaryFile = new System.Windows.Forms.Label();
+            this.btnSelectDataDictionaryFile = new System.Windows.Forms.Button();
+            this.txtDataDictionaryFilePath = new System.Windows.Forms.TextBox();
             this.lblMySqlConnString = new System.Windows.Forms.Label();
             this.lblOracleConnString = new System.Windows.Forms.Label();
             this.txtMySqlConnString = new System.Windows.Forms.TextBox();
             this.txtOracleConnString = new System.Windows.Forms.TextBox();
-            this.btnSelectDataDictionaryFile = new System.Windows.Forms.Button();
-            this.txtDataDictionaryFilePath = new System.Windows.Forms.TextBox();
-            this.lblDataDictionaryFile = new System.Windows.Forms.Label();
+            this.btnClearTables = new System.Windows.Forms.Button();
             this.gbDataEntities.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -69,9 +71,10 @@
             // 
             // gbDataEntities
             // 
+            this.gbDataEntities.Controls.Add(this.chkLegacyOther);
             this.gbDataEntities.Controls.Add(this.btnSelectOffenseExcel);
             this.gbDataEntities.Controls.Add(this.txtOffenseExcelFile);
-            this.gbDataEntities.Controls.Add(this.chkLegacyOther);
+            this.gbDataEntities.Controls.Add(this.chkLegacyAttachments);
             this.gbDataEntities.Controls.Add(this.chkAttachments);
             this.gbDataEntities.Controls.Add(this.chkCases);
             this.gbDataEntities.Controls.Add(this.chkEvidence);
@@ -90,6 +93,16 @@
             this.gbDataEntities.TabStop = false;
             this.gbDataEntities.Text = "Data Entities";
             // 
+            // chkLegacyOther
+            // 
+            this.chkLegacyOther.AutoSize = true;
+            this.chkLegacyOther.Location = new System.Drawing.Point(62, 367);
+            this.chkLegacyOther.Name = "chkLegacyOther";
+            this.chkLegacyOther.Size = new System.Drawing.Size(126, 21);
+            this.chkLegacyOther.TabIndex = 26;
+            this.chkLegacyOther.Text = "Legacy (Other)";
+            this.chkLegacyOther.UseVisualStyleBackColor = true;
+            // 
             // btnSelectOffenseExcel
             // 
             this.btnSelectOffenseExcel.Location = new System.Drawing.Point(987, 86);
@@ -107,15 +120,15 @@
             this.txtOffenseExcelFile.Size = new System.Drawing.Size(819, 22);
             this.txtOffenseExcelFile.TabIndex = 24;
             // 
-            // chkLegacyOther
+            // chkLegacyAttachments
             // 
-            this.chkLegacyOther.AutoSize = true;
-            this.chkLegacyOther.Location = new System.Drawing.Point(34, 358);
-            this.chkLegacyOther.Name = "chkLegacyOther";
-            this.chkLegacyOther.Size = new System.Drawing.Size(126, 21);
-            this.chkLegacyOther.TabIndex = 23;
-            this.chkLegacyOther.Text = "Legacy (Other)";
-            this.chkLegacyOther.UseVisualStyleBackColor = true;
+            this.chkLegacyAttachments.AutoSize = true;
+            this.chkLegacyAttachments.Location = new System.Drawing.Point(62, 342);
+            this.chkLegacyAttachments.Name = "chkLegacyAttachments";
+            this.chkLegacyAttachments.Size = new System.Drawing.Size(160, 21);
+            this.chkLegacyAttachments.TabIndex = 23;
+            this.chkLegacyAttachments.Text = "Legacy (Attacments)";
+            this.chkLegacyAttachments.UseVisualStyleBackColor = true;
             // 
             // chkAttachments
             // 
@@ -257,6 +270,32 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Data Sources (Connect Strings)";
             // 
+            // lblDataDictionaryFile
+            // 
+            this.lblDataDictionaryFile.AutoSize = true;
+            this.lblDataDictionaryFile.Location = new System.Drawing.Point(32, 128);
+            this.lblDataDictionaryFile.Name = "lblDataDictionaryFile";
+            this.lblDataDictionaryFile.Size = new System.Drawing.Size(131, 17);
+            this.lblDataDictionaryFile.TabIndex = 31;
+            this.lblDataDictionaryFile.Text = "Data Dictionary file:";
+            // 
+            // btnSelectDataDictionaryFile
+            // 
+            this.btnSelectDataDictionaryFile.Location = new System.Drawing.Point(858, 135);
+            this.btnSelectDataDictionaryFile.Name = "btnSelectDataDictionaryFile";
+            this.btnSelectDataDictionaryFile.Size = new System.Drawing.Size(84, 34);
+            this.btnSelectDataDictionaryFile.TabIndex = 30;
+            this.btnSelectDataDictionaryFile.Text = "Select";
+            this.btnSelectDataDictionaryFile.UseVisualStyleBackColor = true;
+            this.btnSelectDataDictionaryFile.Click += new System.EventHandler(this.btnSelectDataDictionaryFile_Click);
+            // 
+            // txtDataDictionaryFilePath
+            // 
+            this.txtDataDictionaryFilePath.Location = new System.Drawing.Point(31, 148);
+            this.txtDataDictionaryFilePath.Name = "txtDataDictionaryFilePath";
+            this.txtDataDictionaryFilePath.Size = new System.Drawing.Size(819, 22);
+            this.txtDataDictionaryFilePath.TabIndex = 29;
+            // 
             // lblMySqlConnString
             // 
             this.lblMySqlConnString.AutoSize = true;
@@ -289,37 +328,23 @@
             this.txtOracleConnString.Size = new System.Drawing.Size(1040, 22);
             this.txtOracleConnString.TabIndex = 25;
             // 
-            // btnSelectDataDictionaryFile
+            // btnClearTables
             // 
-            this.btnSelectDataDictionaryFile.Location = new System.Drawing.Point(858, 135);
-            this.btnSelectDataDictionaryFile.Name = "btnSelectDataDictionaryFile";
-            this.btnSelectDataDictionaryFile.Size = new System.Drawing.Size(84, 34);
-            this.btnSelectDataDictionaryFile.TabIndex = 30;
-            this.btnSelectDataDictionaryFile.Text = "Select";
-            this.btnSelectDataDictionaryFile.UseVisualStyleBackColor = true;
-            this.btnSelectDataDictionaryFile.Click += new System.EventHandler(this.btnSelectDataDictionaryFile_Click);
-            // 
-            // txtDataDictionaryFilePath
-            // 
-            this.txtDataDictionaryFilePath.Location = new System.Drawing.Point(31, 148);
-            this.txtDataDictionaryFilePath.Name = "txtDataDictionaryFilePath";
-            this.txtDataDictionaryFilePath.Size = new System.Drawing.Size(819, 22);
-            this.txtDataDictionaryFilePath.TabIndex = 29;
-            // 
-            // lblDataDictionaryFile
-            // 
-            this.lblDataDictionaryFile.AutoSize = true;
-            this.lblDataDictionaryFile.Location = new System.Drawing.Point(32, 128);
-            this.lblDataDictionaryFile.Name = "lblDataDictionaryFile";
-            this.lblDataDictionaryFile.Size = new System.Drawing.Size(131, 17);
-            this.lblDataDictionaryFile.TabIndex = 31;
-            this.lblDataDictionaryFile.Text = "Data Dictionary file:";
+            this.btnClearTables.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnClearTables.Location = new System.Drawing.Point(1128, 441);
+            this.btnClearTables.Name = "btnClearTables";
+            this.btnClearTables.Size = new System.Drawing.Size(192, 38);
+            this.btnClearTables.TabIndex = 13;
+            this.btnClearTables.Text = "Clear Tables";
+            this.btnClearTables.UseVisualStyleBackColor = true;
+            this.btnClearTables.Click += new System.EventHandler(this.btnClearTables_Click);
             // 
             // ETLController
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1332, 770);
+            this.Controls.Add(this.btnClearTables);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnRUNMigration);
             this.Controls.Add(this.gbDataEntities);
@@ -345,7 +370,7 @@
         private System.Windows.Forms.CheckBox chkLookupTables;
         private System.Windows.Forms.CheckBox chkOffenseCodes;
         private System.Windows.Forms.CheckBox chkAttributes;
-        private System.Windows.Forms.CheckBox chkLegacyOther;
+        private System.Windows.Forms.CheckBox chkLegacyAttachments;
         private System.Windows.Forms.CheckBox chkAttachments;
         private System.Windows.Forms.CheckBox chkCases;
         private System.Windows.Forms.CheckBox chkEvidence;
@@ -363,6 +388,8 @@
         private System.Windows.Forms.Button btnSelectDataDictionaryFile;
         private System.Windows.Forms.TextBox txtDataDictionaryFilePath;
         private System.Windows.Forms.Label lblDataDictionaryFile;
+        private System.Windows.Forms.CheckBox chkLegacyOther;
+        private System.Windows.Forms.Button btnClearTables;
     }
 }
 

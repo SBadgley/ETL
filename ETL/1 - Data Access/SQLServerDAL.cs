@@ -220,7 +220,7 @@ namespace DataAccessLayer_NET_Framework_
                 object scalarObj;
                 int scalarInt = -1;
                 scalarObj = objSqlCommand.ExecuteScalar();
-                scalarInt = (int)scalarObj;
+                scalarInt = (int)scalarObj; // If this fails, see MySqlDAL for Convert.Int... statement
                 logging.WriteEvent("ExecuteScalar called. Statement = " + executeStatement);
                 return scalarInt;
             }
