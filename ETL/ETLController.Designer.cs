@@ -56,6 +56,8 @@
             this.txtMySqlConnString = new System.Windows.Forms.TextBox();
             this.txtOracleConnString = new System.Windows.Forms.TextBox();
             this.btnClearTables = new System.Windows.Forms.Button();
+            this.btnClearETLTable = new System.Windows.Forms.Button();
+            this.Testing = new System.Windows.Forms.Button();
             this.gbDataEntities.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -105,9 +107,9 @@
             // 
             // btnSelectOffenseExcel
             // 
-            this.btnSelectOffenseExcel.Location = new System.Drawing.Point(987, 86);
+            this.btnSelectOffenseExcel.Location = new System.Drawing.Point(987, 93);
             this.btnSelectOffenseExcel.Name = "btnSelectOffenseExcel";
-            this.btnSelectOffenseExcel.Size = new System.Drawing.Size(84, 34);
+            this.btnSelectOffenseExcel.Size = new System.Drawing.Size(84, 29);
             this.btnSelectOffenseExcel.TabIndex = 25;
             this.btnSelectOffenseExcel.Text = "Select";
             this.btnSelectOffenseExcel.UseVisualStyleBackColor = true;
@@ -224,8 +226,6 @@
             // chkOffenseCodes
             // 
             this.chkOffenseCodes.AutoSize = true;
-            this.chkOffenseCodes.Checked = true;
-            this.chkOffenseCodes.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkOffenseCodes.Location = new System.Drawing.Point(34, 99);
             this.chkOffenseCodes.Name = "chkOffenseCodes";
             this.chkOffenseCodes.Size = new System.Drawing.Size(122, 21);
@@ -236,6 +236,8 @@
             // chkAttributes
             // 
             this.chkAttributes.AutoSize = true;
+            this.chkAttributes.Checked = true;
+            this.chkAttributes.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkAttributes.Location = new System.Drawing.Point(34, 72);
             this.chkAttributes.Name = "chkAttributes";
             this.chkAttributes.Size = new System.Drawing.Size(90, 21);
@@ -281,9 +283,9 @@
             // 
             // btnSelectDataDictionaryFile
             // 
-            this.btnSelectDataDictionaryFile.Location = new System.Drawing.Point(858, 135);
+            this.btnSelectDataDictionaryFile.Location = new System.Drawing.Point(987, 143);
             this.btnSelectDataDictionaryFile.Name = "btnSelectDataDictionaryFile";
-            this.btnSelectDataDictionaryFile.Size = new System.Drawing.Size(84, 34);
+            this.btnSelectDataDictionaryFile.Size = new System.Drawing.Size(84, 29);
             this.btnSelectDataDictionaryFile.TabIndex = 30;
             this.btnSelectDataDictionaryFile.Text = "Select";
             this.btnSelectDataDictionaryFile.UseVisualStyleBackColor = true;
@@ -293,7 +295,7 @@
             // 
             this.txtDataDictionaryFilePath.Location = new System.Drawing.Point(31, 148);
             this.txtDataDictionaryFilePath.Name = "txtDataDictionaryFilePath";
-            this.txtDataDictionaryFilePath.Size = new System.Drawing.Size(819, 22);
+            this.txtDataDictionaryFilePath.Size = new System.Drawing.Size(950, 22);
             this.txtDataDictionaryFilePath.TabIndex = 29;
             // 
             // lblMySqlConnString
@@ -335,15 +337,39 @@
             this.btnClearTables.Name = "btnClearTables";
             this.btnClearTables.Size = new System.Drawing.Size(192, 38);
             this.btnClearTables.TabIndex = 13;
-            this.btnClearTables.Text = "Clear Tables";
+            this.btnClearTables.Text = "Clear Migration Tables";
             this.btnClearTables.UseVisualStyleBackColor = true;
             this.btnClearTables.Click += new System.EventHandler(this.btnClearTables_Click);
+            // 
+            // btnClearETLTable
+            // 
+            this.btnClearETLTable.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnClearETLTable.Location = new System.Drawing.Point(1128, 501);
+            this.btnClearETLTable.Name = "btnClearETLTable";
+            this.btnClearETLTable.Size = new System.Drawing.Size(192, 38);
+            this.btnClearETLTable.TabIndex = 14;
+            this.btnClearETLTable.Text = "Clear ETL Table(s)";
+            this.btnClearETLTable.UseVisualStyleBackColor = true;
+            this.btnClearETLTable.Click += new System.EventHandler(this.btnClearETLTable_Click);
+            // 
+            // Testing
+            // 
+            this.Testing.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Testing.Location = new System.Drawing.Point(1128, 692);
+            this.Testing.Name = "Testing";
+            this.Testing.Size = new System.Drawing.Size(192, 38);
+            this.Testing.TabIndex = 15;
+            this.Testing.Text = "Testing";
+            this.Testing.UseVisualStyleBackColor = true;
+            this.Testing.Click += new System.EventHandler(this.Testing_Click);
             // 
             // ETLController
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1332, 770);
+            this.Controls.Add(this.Testing);
+            this.Controls.Add(this.btnClearETLTable);
             this.Controls.Add(this.btnClearTables);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnRUNMigration);
@@ -390,6 +416,8 @@
         private System.Windows.Forms.Label lblDataDictionaryFile;
         private System.Windows.Forms.CheckBox chkLegacyOther;
         private System.Windows.Forms.Button btnClearTables;
+        private System.Windows.Forms.Button btnClearETLTable;
+        private System.Windows.Forms.Button Testing;
     }
 }
 

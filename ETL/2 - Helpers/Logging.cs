@@ -10,14 +10,22 @@ namespace ETL._2___Helpers
     {
         public void WriteEvent(string InformationToLog)
         {
-            File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "\\ETL_Debugging.txt", InformationToLog);
+            File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "\\ETL_Debugging.txt", 
+                DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + ": " + InformationToLog + Environment.NewLine + Environment.NewLine);
         }
         public void WriteReportEntry(string Summary, string Details, string Notes)
         {
             MySqlDAL mySqlDAL = new MySqlDAL("");
 
-            mySqlDAL.ExecuteNonQuery("INSERT INTO ETL_Results (DateTime, ResultSummary, ResultDetail, Notes) " + 
+            mySqlDAL.ExecuteNonQuery("INSERT INTO ETL_Results (EventTime, ResultSummary, ResultDetail, Notes) " + 
                 "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + Summary + "', '" + Details + "', '" + Notes + "')");
+        }
+        public void WriteReportDataEntry(string DataEntity, int SuccessfulRows, int ErrorRows, string Notes = "")
+        {
+            MySqlDAL mySqlDAL = new MySqlDAL("");
+
+            mySqlDAL.ExecuteNonQuery("INSERT INTO ETL_Results (EventTime, ResultSummary, ResultDetail, Notes) " +
+                "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + SuccessfulRows + " " + DataEntity + " rows copied.', '" + ErrorRows + " rows had errors.', '" + Notes + "')");
         }
     }
 }

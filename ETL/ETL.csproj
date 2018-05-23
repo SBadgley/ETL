@@ -106,12 +106,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="1 - Data Access\OracleMDA.txt" />
+    <Content Include="Notes.txt" />
     <Content Include="x86\MySql.Data.dll" />
     <Content Include="x86\Oracle.ManagedDataAccessDTC.dll" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="5 - Inserts\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <COMReference Include="MSDAOSP">
       <Guid>{E0E270C2-C0BE-11D0-8FE4-00A0C90A6341}</Guid>

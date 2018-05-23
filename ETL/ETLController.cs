@@ -15,13 +15,14 @@ namespace ETL
         public string mySqlConnString = "";
         public string oracleConnString = "";
         public List<string> listOfMigrationTables = new List<string>();
+        int iInsertedRows = 0;
+        int iErroredRows = 0;
         #endregion
 
         #region Class Initialization
         public ETLController()
         {
             InitializeComponent();
-
             try
             {
                 txtMySqlConnString.Text = ConfigurationManager.AppSettings["MySql_FullConnString"];
@@ -41,16 +42,17 @@ namespace ETL
         private void btnRUNMigration_Click(object sender, EventArgs e)
         {
             #region Initilize
+
+            ListBoxInfo.Items.Add("==========  CONVERSION COMMENCED ==========");
             logging.WriteEvent("==========  CONVERSION COMMENCED ==========");
             logging.WriteReportEntry("==========  CONVERSION COMMENCED ==========", "==========  CONVERSION COMMENCED ==========", "");
-            ListBoxInfo.Items.Add("==========  CONVERSION COMMENCED ==========");
 
             BuildTableList();
             #endregion
 
             #region Sanity Check
             if (FormSetupSeemsCompleted() == false)
-            {
+            {  // Routine will alert user to any problems, so don't need to do here too.
                 return;
             }
 
@@ -76,8 +78,7 @@ namespace ETL
 
             try
             {
-                OracleDAL tempOracleDAL = new OracleDAL(oracleConnString);
-                oracleDAL = tempOracleDAL;
+                oracleDAL = new OracleDAL(oracleConnString);
             }
             catch (Exception ex)
             {
@@ -90,8 +91,7 @@ namespace ETL
 
             try
             {
-                MySqlDAL tempMySqlDAL = new MySqlDAL();
-                mySqlDAL = tempMySqlDAL;
+                mySqlDAL = new MySqlDAL(mySqlConnString);
             }
             catch (Exception ex)
             {
@@ -114,42 +114,79 @@ namespace ETL
 
             if (!etlProcessing.BuildMasterCodeDataView(txtDataDictionaryFilePath.Text))
             {
-                logging.WriteEvent("Could not build MasterCode view. Check Excel file and make sure it is not opened.");
-                ListBoxInfo.Items.Add("Could not build MasterCode view. Check Excel file and make sure it is not opened.");
+                logging.WriteEvent("Could not build MasterCode view. Check that the Excel file exists and that it is not opened.");
+                ListBoxInfo.Items.Add("Could not build MasterCode view. Check that the Excel file exists and that it is not opened.");
                 return;
             }
 
-
+            if (!etlProcessing.BuildReferenceDataViews(mySqlDAL))
+            {
+                logging.WriteEvent("Could not build Reference Table views.");
+                ListBoxInfo.Items.Add("Could not build Reference Table views.");
+                return;
+            }
             if (chkAttributes.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Attributes...");
-                etlProcessing.ETL_10_Atrributes(oracleDAL, mySqlDAL);
+                ListBoxInfo.Refresh();
+                if (!etlProcessing.ETL_10_Atrributes(oracleDAL, mySqlDAL, out iInsertedRows, out iErroredRows))
+                {
+                    DialogResult response = MessageBox.Show("An error occurred during Attribute data loading. Continue?", "Attention", MessageBoxButtons.YesNo);
+                    if (response == DialogResult.No)
+                    {
+                        logging.WriteEvent("Error occurred during Attribute data loading, user aborted.");
+                        return;
+                    }
+                }
+                if (iErroredRows == 0)
+                {
+                    ListBoxInfo.Items.Add("Attributes completed. " + iInsertedRows + " rows inserted.");
+                }
+                else
+                {
+                    ListBoxInfo.Items.Add("Attributes completed. " + iInsertedRows + " rows inserted, " + iErroredRows + " rows had errors.");
+                }
             }
-
             if (chkOffenseCodes.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Offense Codes...");
                 etlProcessing.ETL_20_OffenseCodes(oracleDAL, mySqlDAL, txtOffenseExcelFile.Text);
             }
-
             if (chkUsers.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Users...");
-                etlProcessing.ETL_40_Users(oracleDAL, mySqlDAL);
+                // SCB TODO: Do the same with the other routines (out counts)? I think so, given time.
+                if (!etlProcessing.ETL_40_Users(oracleDAL, mySqlDAL, out iInsertedRows, out iErroredRows))
+                {
+                    // SCB TODO: Do the same with the other routines (MessageBox)?  Errors are logged to file but not readily appearant.
+                    DialogResult response = MessageBox.Show("An error occurred during User data loading. Continue?", "Attention", MessageBoxButtons.YesNo);
+                    if (response == DialogResult.No)
+                    {
+                        logging.WriteEvent("Error occurred during User data loading, user aborted.");
+                        return;
+                    }
+                }
+                if (iErroredRows == 0)
+                {
+                    ListBoxInfo.Items.Add("Users completed. " + iInsertedRows + " rows inserted.");
+                }
+                else
+                {
+                    ListBoxInfo.Items.Add("Users completed. " + iInsertedRows + " rows inserted, " + iErroredRows + " rows had errors.");
+                }
             }
-
             if (chkLocations.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Locations...");
                 etlProcessing.ETL_50_Locations(oracleDAL, mySqlDAL);
             }
-
             if (chkNames.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Names...");
                 etlProcessing.ETL_60_Names(oracleDAL, mySqlDAL);
+                ListBoxInfo.Items.Add("Processing Name Report Links...");
+                etlProcessing.ETL_60_Name_Report_Links(oracleDAL, mySqlDAL);
             }
-
             if (chkReports.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Reports...");
@@ -173,13 +210,11 @@ namespace ETL
                 ListBoxInfo.Items.Add("Processing Reports_TrafficCrashes...");
                 etlProcessing.ETL_70_9_Reports_Traffic_Crash(oracleDAL, mySqlDAL);
             }
-
             if (chkItems.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Items...");
                 etlProcessing.ETL_80_Items(oracleDAL, mySqlDAL);
             }
-
             if (chkEvidence.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Evidence Items...");
@@ -187,7 +222,6 @@ namespace ETL
                 ListBoxInfo.Items.Add("Processing Evidence Chain Items...");
                 etlProcessing.ETL_90_2_Evidence_Chain(oracleDAL, mySqlDAL);
             }
-
             if (chkCases.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Cases...");
@@ -195,7 +229,6 @@ namespace ETL
                 ListBoxInfo.Items.Add("Processing Case Notes...");
                 etlProcessing.ETL_110_Case_Notes(oracleDAL, mySqlDAL);
             }
-
             if (chkLegacyAttachments.Checked)
             {
                 ListBoxInfo.Items.Add("Processing Attachments...");
@@ -203,9 +236,18 @@ namespace ETL
             }
             // Etc...
 
+            try
+            {
+                oracleDAL.CloseConnection();
+            }
+            catch (Exception)
+            {
+            } 
+            mySqlDAL.Close();
+
+            ListBoxInfo.Items.Add("==========  CONVERSION COMPLETED ==========");
             logging.WriteEvent("==========  CONVERSION COMPLETED ==========");
             logging.WriteReportEntry("==========  CONVERSION COMPLETED ==========", "==========  CONVERSION COMPLETED ==========", "");
-            ListBoxInfo.Items.Add("==========  CONVERSION COMPLETED ==========");
 
             #endregion
         }
@@ -238,7 +280,7 @@ namespace ETL
         {
             string selectStatement = "";
             int tableCount = 0;
-            MySqlDAL mySqlDAL = new MySqlDAL();
+            MySqlDAL mySqlDAL = new MySqlDAL(mySqlConnString);
 
             foreach (string s in listOfMigrationTables)
             {
@@ -260,7 +302,7 @@ namespace ETL
             string sqlStatement = "";
             bool nonQueryExecuted = false;
             bool allExecuted = true;
-            MySqlDAL mySqlDAL = new MySqlDAL();
+            MySqlDAL mySqlDAL = new MySqlDAL(mySqlConnString);
 
             foreach (string s in listOfMigrationTables)
             {
@@ -275,13 +317,28 @@ namespace ETL
             return allExecuted;
         }
 
+        private void ClearETLTables()
+        {
+            MySqlDAL mySqlDAL = new MySqlDAL(mySqlConnString);
+            bool nonQueryExecuted = false;
+            string sqlStatement = "DELETE FROM migration.ETL_Results";
+            nonQueryExecuted = mySqlDAL.ExecuteNonQuery(sqlStatement);
+            if (nonQueryExecuted)
+                ListBoxInfo.Items.Add("ETL_Results table cleared.");
+            else
+                ListBoxInfo.Items.Add("Failed to clear table ETL_Results table.");
+        }
+
         private void BuildTableList()
         {
-            //listOfMigrationTables.Add("migration_attributes");  // SCB TODO: Add attributes?
+            // Used to 1) check if there is any data in these tables and 2) to clear ETL Staging tables.
+
+            listOfMigrationTables.Add("migration_attributes"); 
             listOfMigrationTables.Add("migration_offense_codes");
             listOfMigrationTables.Add("migration_users");
             listOfMigrationTables.Add("migration_locations");
             listOfMigrationTables.Add("migration_names");
+            listOfMigrationTables.Add("migration_name_report_links");
             listOfMigrationTables.Add("migration_reports");
             listOfMigrationTables.Add("migration_arrests");
             listOfMigrationTables.Add("migration_charges");
@@ -298,7 +355,8 @@ namespace ETL
             listOfMigrationTables.Add("migration_cases");
             listOfMigrationTables.Add("migration_case_notes");
             listOfMigrationTables.Add("migration_attachments");
-            listOfMigrationTables.Add("migration_legacy_details");
+            listOfMigrationTables.Add("migration_additional_information");
+            //listOfMigrationTables.Add("migration_legacy_details"); // Not used yet
         }
         #endregion
 
@@ -308,13 +366,11 @@ namespace ETL
             openOffenseExcelFile.ShowDialog();
             txtOffenseExcelFile.Text = openOffenseExcelFile.FileName;
         }
-
         private void btnSelectDataDictionaryFile_Click(object sender, EventArgs e)
         {
             openOffenseExcelFile.ShowDialog();
             txtDataDictionaryFilePath.Text = openOffenseExcelFile.FileName;
         }
-
         private void btnClearTables_Click(object sender, EventArgs e)
         {
             if (ClearTables())
@@ -326,6 +382,44 @@ namespace ETL
                 MessageBox.Show("One or more tables WAS NOT cleared.");
             }
         }
+        private void btnClearETLTable_Click(object sender, EventArgs e)
+        {
+            ClearETLTables();
+        }
         #endregion
+
+        private void Testing_Click(object sender, EventArgs e)
+        {
+            string sqlStatement = "";
+            string currentDateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            bool Succeeded = false;
+            MySqlDAL mySqlDAL = new MySqlDAL(mySqlConnString);
+
+            // Findings:
+            // 1) DateTime's work with and w/o quotes
+            // 2) VarChar's work with and w/o quotes
+            // 3) TinyInt's work with and w/o quotes
+
+            // DateTime, varchar(4), tinyint(1)
+            // succeed
+            sqlStatement = "INSERT INTO migration.df_migration_offenses (row_insert_date, was_completed, " +
+                "suspected_of_using_drugs) VALUES ('" + currentDateTime + "', '1223', 1)";
+            Succeeded = mySqlDAL.ExecuteNonQuery(sqlStatement);
+            MessageBox.Show(Succeeded.ToString());
+
+            // fail (No quotes around date)
+            //sqlStatement = "INSERT INTO migration.df_migration_offenses (row_insert_date, was_completed, " +
+            //    "suspected_of_using_drugs) VALUES (" + currentDateTime + ", '1223', 1)";
+            //Succeeded = mySqlDAL.ExecuteNonQuery(sqlStatement);
+            //MessageBox.Show(Succeeded.ToString());
+
+            // success (No quotes around varchar(4) & quotes around tinyint(1))
+            sqlStatement = "INSERT INTO migration.df_migration_offenses (row_insert_date, was_completed, " +
+                "suspected_of_using_drugs) VALUES ('" + currentDateTime + "', 5432, '1')";
+            Succeeded = mySqlDAL.ExecuteNonQuery(sqlStatement);
+            MessageBox.Show(Succeeded.ToString());
+
+
+        }
     }
 }

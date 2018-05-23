@@ -1,10 +1,7 @@
 ﻿using System;
-
 using System.Configuration;
-
 using Oracle.ManagedDataAccess.Client;  
 using Oracle.ManagedDataAccess.Types;
-
 using System.Data;  // CommandType
 using ETL._2___Helpers; // Logging
 
@@ -12,27 +9,19 @@ namespace DataAccessLayer_NET_Framework_
 {
     public class OracleDAL
     {
+        #region Variables
         const string LoggingFileName = "\\OracleDALLog.txt";
         Logging logging = new Logging();
 
         public static OracleDAL objOracleDAL = null;
         public OracleConnection objOracleConnection = null;
 
-        //public string ConnectionStringProperty { get; set; } = "";
         public string SqlCommandProperty { get; set; } = "";
         public int CommandTimeoutOverride { get; set; } = 30;
-        //public int AppEnvironment { get; set; } = 1;
-        //public int LoggingLevel { get; set; } = 1;
-
         public enum EnumLoggingLevel { NoLogging = 0, MinimalLogging = 1, FullLogging = 2 };
-
+        #endregion
         public OracleDAL(string connectionString)
         {
-            ////ConnectionStringProperty = ConfigurationManager.AppSettings.Get("OracleSourceConnString");
-            //LoggingLevel = (int)EnumLoggingLevel.FullLogging;
-
-            //ConnectionStringProperty = ConfigurationManager.AppSettings["OracleConnectionString"];
-
             OracleConnection objOracleConnection = new OracleConnection(connectionString);
             if (OracleConnection.IsAvailable)  
             {
@@ -43,42 +32,13 @@ namespace DataAccessLayer_NET_Framework_
                 logging.WriteEvent("Oracle connection is not available.");
             }
         }
-
-        //public static OracleDAL GetInstance(string DB)  // Used??
-        //{
-        //    if (objOracleDAL == null)
-        //    {
-        //        OracleDAL objOracleDAL = new OracleDAL(DB);
-        //    }
-        //    return objOracleDAL;
-        //}
-
-        //public void OpenConnection() // Not currently used.
-        //{
-        //    if (objOracleConnection.State != ConnectionState.Open)
-        //    {
-        //        objOracleConnection.Open();
-        //    }
-        //}
-        //public void CloseConnection() // Not currently used.
-        //{
-        //    if (objOracleConnection.State == ConnectionState.Open)
-        //    {
-        //        objOracleConnection.Close();
-        //    }
-        //}
-
-
-        public OracleDataReader ExecuteReader(string executeStatement = "")
+        public OracleDataReader ExecuteReader(string executeStatement = "", bool logCount = false)
         {
-            //OpenConnection();
-
             if (SqlCommandProperty != "")
             {
-                executeStatement = SqlCommandProperty;
-                SqlCommandProperty = "";
+                executeStatement = SqlCommandProperty;  // Allow over-ride
+                SqlCommandProperty = "";  // Clear it out so it's not used again
             }
-
             OracleCommand objSqlCommand = new OracleCommand(executeStatement, objOracleConnection)
             {
                 CommandType = CommandType.Text,
@@ -87,13 +47,52 @@ namespace DataAccessLayer_NET_Framework_
             try
             {
                 OracleDataReader dr = objSqlCommand.ExecuteReader();
-                logging.WriteEvent("ExecuteReader called. Statement = " + executeStatement);
+                logging.WriteEvent("ExecuteReader called (Part 1). Statement = " + executeStatement);
+                if (logCount)
+                {
+                    int numberOfRows = 0;
+                    if (dr.HasRows)
+                    {
+                        DataTable dt = new DataTable();
+                        dt.Load(dr);
+                        numberOfRows = dt.Rows.Count;
+                    }
+                    logging.WriteEvent("ExecuteReader called (Part 2). Rows returned = " + numberOfRows);
+                }
+                logging.WriteEvent("----------------------------------------------------------");
+
                 return dr;
             }
             catch (Exception ex)
             {
                 logging.WriteEvent("Error in ExecuteReader. " + ex.Message);
                 return null;
+            }
+        }
+        public int ExecuteScalar(string executeStatement = "")
+        {
+            if (SqlCommandProperty != "")
+            {
+                executeStatement = SqlCommandProperty;  // Allow over-ride
+                SqlCommandProperty = "";  // Clear it out so it's not used again
+            }
+            OracleCommand oracleSqlCommand = new OracleCommand(executeStatement, objOracleConnection)
+            {
+                CommandType = CommandType.Text,
+                CommandTimeout = CommandTimeoutOverride
+            };
+            object oScalarValue = -1;
+            int iScalarInt = -1;
+            try
+            {
+                oScalarValue = oracleSqlCommand.ExecuteScalar();
+                iScalarInt = Convert.ToInt32(oScalarValue);
+                return iScalarInt;
+            }
+            catch (Exception ex)
+            {
+                logging.WriteEvent("Error in ExecuteScalar. " + ex.Message);
+                return -1;
             }
         }
         public void ExecuteStoredProcedure(string storedProcedure, OracleParameter[] param)
@@ -114,6 +113,17 @@ namespace DataAccessLayer_NET_Framework_
             catch (Exception ex) 
             {
                 logging.WriteEvent("Error in ExecuteStoredProcedure. " + ex.Message);
+            }
+        }
+        public void CloseConnection()
+        {
+            try
+            {
+                objOracleConnection.Close();
+            }
+            catch (Exception ex)
+            {
+                logging.WriteEvent("Error closing Oracle connection. " + ex.Message);
             }
         }
     }

@@ -1,0 +1,18 @@
+﻿Agency Codes:
+
+AVP – Aumsville PD
+DAP – Dallas PD
+DAS – Polk County Sheriff
+GRT – Grand Ronde Tribes PD
+GVP – Gervais PD
+IDP – Independence PD
+KZP – Keizer PD
+LCP – Lincoln City PD
+MMP – Monmouth PD
+SMP – Salem PD
+SYP – Stayton PD
+TRP – Turner PD
+
+
+From JB:
+“999” in the IBR code means not reportable in PRIORS
