@@ -1,16 +1,18 @@
 ﻿using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types;
+
+using MySql.Data.MySqlClient;
 using MySql.Data;
 using MySql.Data.Common;
 using MySql.Data.Types;
-using MySql.Data.MySqlClient;
-using DataAccessLayer_NET_Framework_;
+
 using System;
 using System.Data;
 using System.Data.OleDb;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms;
+
+using DataAccessLayer_NET_Framework_;
 
 namespace ETL._2___Helpers
 {
@@ -40,102 +42,162 @@ namespace ETL._2___Helpers
         #region ELT Proccessing
 
         // NOTES: Most need some finishing. Routines needing extensive work have comments below. Search for 'SCB TODO' for all TODO's.
-        // Needs to be done, not even started:
-        public bool ETL_10_Atrributes(OracleDAL oracleDAL, MySqlDAL mySqlDAL, out int InsertedRows, out int ErroredRows)
+        // Currently working with Excel, no Oracle access yet:
+        public bool ETL_10_Atrributes(OracleDAL oracleDAL, MySqlDAL mySqlDAL, List<string> listOfAgencies, out int InsertedRows, out int ErroredRows)
         {
             InsertedRows = 0;
             ErroredRows = 0;
 
             try
             {
-
                 string insertStatement =
-                    "INSERT INTO migration_attributes (source_created_date, source_created_by, source_updated_date, source_updated_by, " +
+                    "INSERT INTO migration.migration_attributes (source_created_date, source_created_by, source_updated_date, source_updated_by, " +
                     "created_date, created_by, updated_date, updated_by, " +
-                    "source_attribute_id, parent_source_attribute_id, parent_attribute_type, attribute_type, display_abbreviation, display_value) VALUES (";
+                    "source_attribute_id, parent_source_attribute_id, parent_attribute_type, attribute_type, display_abbreviation, display_value) " + 
+                    "VALUES (";
 
                 string selectStatement = "";
                 string insertValues = "";
                 string fullInsertStatement = "";
-
+                string sListOfAgencies = "";
+                string sTemp = "";
+                string newAttrTypeInsertStatement = "";
                 int attributeTypeID = 0;
+                int uniqueId = 1;
+                int matchCount = 0;
+                int noMatchCount = 0;
+                int nextAttrTypeId = 0;
 
-                // SCB TODO: Verify where to get the attributes.  From PRIORS Reference values tab of DD spreadsheet?  Need Oracle access to see.
+                // Filter down to only Agencies checked on form.
+                foreach(string agency in listOfAgencies)
+                {
+                    sListOfAgencies += "'" + agency + "',";
+                }
+                sListOfAgencies = sListOfAgencies.TrimEnd(',');
+                vMasterCodes.RowFilter = "AGENCY IN (" + sListOfAgencies + ")";
+
+                // NOTE: Attributes should come from PRIORS, however, there may be some hard-coding. Some may still come from Excel.
                 for (int i = 0; i < vMasterCodes.Count; i++)
                 {
                     attributeTypeID = 0;
 
+                    // See if there is an existing attribute type, and while at it, get possible parent info.
                     selectStatement = "SELECT at1.id, at1.name, at1.parent_attribute_type_id, at2.name " +
-                        "FROM migration.ref_migration_attribute_type at1 " +
-                        "LEFT JOIN migration.ref_migration_attribute_type at2 ON at2.id = at1.parent_attribute_type_id " +
-                        "WHERE at1.name = '" + vMasterCodes[i][0].ToString() + "'";
+                    "FROM migration.ref_migration_attribute_type at1 " +
+                    "LEFT JOIN migration.ref_migration_attribute_type at2 ON at2.id = at1.parent_attribute_type_id " +
+                    "WHERE UPPER(TRIM(at1.name)) = '" + vMasterCodes[i][0].ToString().ToUpper().Trim() + "'";
 
-                MySqlDataReader dr = mySqlDAL.ExecuteDataReader(selectStatement);
+                    MySqlDataReader dr = mySqlDAL.ExecuteDataReader(selectStatement);
+
+                    insertValues = "";
+
+                    insertValues += "'" + currentDateTime + "', ";
+                    insertValues += "'" + defaultCreatedUpdatedBy + "', ";
+                    insertValues += "'" + currentDateTime + "', ";
+                    insertValues += "'" + defaultCreatedUpdatedBy + "', ";
+
+                    insertValues += "'" + currentDateTime + "', ";
+                    insertValues += "'" + defaultCreatedUpdatedBy + "', ";
+                    insertValues += "'" + currentDateTime + "', ";
+                    insertValues += "'" + defaultCreatedUpdatedBy + "', ";
+
                     if (dr.HasRows)
                     {
-                        insertValues = "";
-
-                        insertValues += "'" + currentDateTime + "', ";
-                        insertValues += "'" + defaultCreatedUpdatedBy + "', ";
-                        insertValues += "'" + currentDateTime + "', ";
-                        insertValues += "'" + defaultCreatedUpdatedBy + "', ";
-
-                        insertValues += "'" + currentDateTime + "', ";
-                        insertValues += "'" + defaultCreatedUpdatedBy + "', ";
-                        insertValues += "'" + currentDateTime + "', ";
-                        insertValues += "'" + defaultCreatedUpdatedBy + "', ";
-
+                        matchCount = +1;
                         // Excel columns: Table Id, Value, Description, Agency
-                        insertValues += "'" + vMasterCodes[i][1].ToString() + "', "; // source_attribute_id  - 32  Unique to type
 
+                        // source_attribute_id is Varchar(32) so trim as necessary.
+                        if (vMasterCodes[i][0].ToString().Length > 25)
+                            sTemp = vMasterCodes[i][0].ToString().Substring(0, 24);
+                        else
+                            sTemp = vMasterCodes[i][0].ToString();
 
+                        insertValues += "'" + sTemp + "-" + uniqueId + "', "; // source_attribute_id  - 32  Unique to type
 
                         while (dr.Read())
                         {
                             attributeTypeID = (int)dr[0];
                             if (dr[2].ToString() != "")
-                            {
                                 insertValues += "'" + dr[2].ToString() + "'"; // parent_source_attribute_id
-                            }
                             else
-                            {
                                 insertValues += "null, ";  // parent_source_attribute_id
-                            }
+
                             if (dr[3].ToString() != "")
-                            {
                                 insertValues += "'" + dr[3].ToString() + "'";  // parent_attribute_type
-                            }
                             else
-                            {
                                 insertValues += "null, ";  // parent_attribute_type
-                            }
                         }
+
                         dr.Close();
 
-
-
-                        //insertValues += parentAttributeTypeID + ", ";  // parent_source_attribute_id
-                        //insertValues += parentAttributeType + ", ";    // parent_attribute_type
-
                         insertValues += "'" + vMasterCodes[i][0].ToString() + "', "; // attribute_type       - 128 "The mark43 attribute type"
-                        //
-                        insertValues += "'" + vMasterCodes[i][1].ToString() + "', "; // display_abbreviation - 15
-                        insertValues += "'" + vMasterCodes[i][2].ToString() + "')"; // display_value - 256
 
-                        fullInsertStatement = insertStatement + insertValues;
+                        if (vMasterCodes[i][1].ToString().Length > 15)
+                            sTemp = vMasterCodes[i][1].ToString().Substring(0, 14);
+                        else
+                            sTemp = vMasterCodes[i][1].ToString();
 
-                        if (mySqlDAL.ExecuteNonQuery(fullInsertStatement))
+                        insertValues += "'" + sTemp + "', "; // display_abbreviation - 15
+                        insertValues += "'" + vMasterCodes[i][2].ToString().Replace("'", "''") + "')"; // display_value - 256
+
+                    } // dr.HasRows / Match found
+                    //================================================================================================================
+                    else  // No Match found so: 1) Add row to ref_migration_attribute_type, then 2) add row to ref_migration_attribute
+                    {
+                        dr.Close();
+
+                        noMatchCount = +1;
+
+                        // Get a unique id for the insert
+                        nextAttrTypeId = mySqlDAL.ExecuteScalar("SELECT MAX(id) FROM migration.ref_migration_attribute_type");
+                        nextAttrTypeId += 1;
+
+                        newAttrTypeInsertStatement = "INSERT INTO ref_migration_attribute_type (id, name, is_editable, is_parent_required) " + 
+                            "VALUES (" + nextAttrTypeId + ", '" + vMasterCodes[i][0].ToString() + "', 1, 0)";
+
+                        if (mySqlDAL.ExecuteNonQuery(newAttrTypeInsertStatement))
                         {
-                            InsertedRows += 1;
+                            // source_attribute_id is Varchar(32) so trim as necessary.
+                            if (vMasterCodes[i][0].ToString().Length > 25)
+                                sTemp = vMasterCodes[i][0].ToString().Substring(0, 24);
+                            else
+                                sTemp = vMasterCodes[i][0].ToString();
+
+                            insertValues += "'" + sTemp + "-" + uniqueId + "', "; // source_attribute_id - 32  Unique to type
+                            insertValues += "null, ";
+                            insertValues += "null, ";
+                            insertValues += "'" + vMasterCodes[i][0].ToString() + "', "; // attribute_type - 128 "The mark43 attribute type"
+                            
+                            // display_abbreviation is Varchar(15) so trim as necessary.
+                            if (vMasterCodes[i][1].ToString().Length > 15)
+                                sTemp = vMasterCodes[i][1].ToString().Substring(0, 14);
+                            else
+                                sTemp = vMasterCodes[i][1].ToString();
+
+                            insertValues += "'" + sTemp + "', "; // display_abbreviation - 15
+                            insertValues += "'" + vMasterCodes[i][2].ToString().Replace("'", "''") + "')"; // display_value - 256
                         }
                         else
                         {
-                            ErroredRows += 1;
+                            logging.WriteEvent("Error in ETL_10_Atrributes. Non-Matching Attribute: Could not Insert into ref_migration_attribute_type table.");
                         }
                     }
-                    dr.Dispose();
-                } // for Master Code dataview loop
+                    uniqueId += 1;
+
+                    fullInsertStatement = insertStatement + insertValues;
+
+                    if (mySqlDAL.ExecuteNonQuery(fullInsertStatement))
+                    {
+                        InsertedRows += 1;
+                    }
+                    else
+                    {
+                        ErroredRows += 1; 
+                    }
+
+                } // for loop of Master Code dataview
                 logging.WriteReportDataEntry("Attributes", InsertedRows, ErroredRows);
+                logging.WriteEvent(matchCount + " Matches found ," + noMatchCount + " had NO Matches.");
                 return true;
             }
             catch (Exception ex)
@@ -144,11 +206,14 @@ namespace ETL._2___Helpers
                 return false;
             }
         }
-        // Confirm the source of Excel file:
-        public bool ETL_20_OffenseCodes(OracleDAL oracleDAL, MySqlDAL mySqlDAL, string offenseCodeExcelPath)
+        // Confirm the source of Excel file, but is working:
+        public bool ETL_20_OffenseCodes(OracleDAL oracleDAL, MySqlDAL mySqlDAL, List<string> listOfAgencies, string offenseCodeExcelPath, out int InsertedRows, out int ErroredRows)
         {
             // As of 5-9-2018 - I have an Excel spreadsheet with PRIORS Offense Codes. Is this the source? On form there is a text box for Excel file.
             // As of 5-10-2018 - Teri sent updated DB and this inserted into the DB.
+            InsertedRows = 0;
+            ErroredRows = 0;
+
             try
             {
                 string insertStatement = "";
@@ -165,10 +230,11 @@ namespace ETL._2___Helpers
                         while (dr.Read())
                         {
                             string Code = dr[0].ToString();
-                            string Name = dr[1].ToString();
+                            string Name = dr[1].ToString().Replace("'", "''");
                             string Agency = dr[7].ToString(); // SHARED, SMP (Salem), etc
 
-                            if (Agency.ToString().ToLower() == "shared" || Agency.ToString().ToLower() == "smp")
+                            // Filter down to only Agencies checked on form.
+                            if (listOfAgencies.Contains(Agency.ToString()))
                             {
                                 insertStatement = "INSERT INTO migration_offense_codes (created_date, created_by, updated_date, updated_by, " +
                                     "source_offense_code_id, offense_name, active_date) " +
@@ -177,21 +243,18 @@ namespace ETL._2___Helpers
 
                                 if (mySqlDAL.ExecuteNonQuery(insertStatement))
                                 {
-                                    iInsertCount += 1;
+                                    InsertedRows += 1;
                                 }
                                 else
                                 {
-                                    iInsertErrorCount = +1;
+                                    ErroredRows = +1;
                                 }
                             }
 
                         }
                     }
                 }
-                logging.WriteReportDataEntry("Offense codes", iInsertCount, iInsertErrorCount);
-                //mySqlDAL.ExecuteNonQuery("INSERT INTO etl_results(EventTime, ResultSummary, ResultDetail, Notes) " +
-                //    "VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Offense codes copied.', '" + iInsertCount + " rows copied, " + iInsertErrorCount + " rows had errors.', '')");
-
+                logging.WriteReportDataEntry("Offense codes", InsertedRows, ErroredRows);
                 return true;
             }
             catch (Exception ex)
@@ -202,6 +265,9 @@ namespace ETL._2___Helpers
         }
         public bool ETL_40_Users(OracleDAL oracleDAL, MySqlDAL mySqlDAL, out int InsertedRows, out int ErroredRows)
         {
+            InsertedRows = 0;
+            ErroredRows = 0;
+
             try
             {
                 // Oracle tables:
@@ -276,23 +342,19 @@ namespace ETL._2___Helpers
 
                         if (mySqlDAL.ExecuteNonQuery(insertStatement))
                         {
-                            iInsertCount += 1;
+                            InsertedRows += 1;
                         }
                         else
                         {
-                            iInsertErrorCount += 1;
+                            ErroredRows += 1;
                         }
                     }
                 }
-                InsertedRows = iInsertCount;
-                ErroredRows = iInsertErrorCount;
-                logging.WriteReportDataEntry("Users", iInsertCount, iInsertErrorCount);
+                logging.WriteReportDataEntry("Users", InsertedRows, ErroredRows);
                 return true;
             }
             catch (Exception ex)
             {
-                InsertedRows = iInsertCount;
-                ErroredRows = iInsertErrorCount;
                 logging.WriteEvent("Error in ETL_40_Users. " + ex.Message);
                 return false;
             }
@@ -509,6 +571,7 @@ namespace ETL._2___Helpers
                             sValue = GetMasterCodeValue("SMT", "", sValueLeft);
 
                             // SCB TODO: Now what? We don't want multiple names rows for all these.
+                            // Should turn this into a routine that returns the new List<string> similar to input string but with mark43 values.
                         }
 
 
@@ -898,12 +961,6 @@ namespace ETL._2___Helpers
                 {
                     while (dr.Read())
                     {
-                        // SCB TODO: 1) Test this and 2) Use or delete - not sure it looks neater.
-                        //insertValues = AppendInsertStatement(insertValues, currentDateTime, true);
-                        //insertValues = AppendInsertStatement(insertValues, defaultCreatedUpdatedBy, false);
-                        //insertValues = AppendInsertStatement(insertValues, FormatDateTimeForMySQL(dr["UPDATE_DATE"].ToString()).ToString(), true);
-                        //insertValues = AppendInsertStatement(insertValues, dr["CDOPERID"].ToString(), false);
-
                         insertValues += "'" + currentDateTime + "', ";
                         insertValues += "'" + defaultCreatedUpdatedBy + "', ";
                         insertValues += "'" + FormatDateTimeForMySQL(dr["UPDATE_DATE"].ToString()) + "', ";
@@ -1048,20 +1105,22 @@ namespace ETL._2___Helpers
                         insertValues += "'" + defaultCreatedUpdatedBy + "', ";
 
 
-                        insertValues += dr["INTID"].ToString() + "', ";
-
                         insertValues += dr["FI_PERSON.PERSON_SEQNUM"].ToString() + "', ";
                         // SCB TODO: From DD: If there are multiple people, there will be multiple records in the FI_PERSON table 
                         // linked to the FIELDINTERVIEWS record.
                         // "SQL FILTERS: FIELDINTERVIEWS.INTID = FI_PERSON.INTID"
+                        // NOTE: subject1_id is varchar(32)
 
+
+                        insertValues += "'" + dr["INTID"].ToString() + "', ";
                         //insertValues += dr["VEHICLE.VEHICLE_SEQNUM???"].ToString() + "', ";  // Field NOT specified in DD
                         // SCB TODO: From DD: If there are multiple vehicles, there will be multiple records in the VEHICLE table 
                         // linked ot the FIELDINTERVIEWS record.
                         // "SQL FILTERS: FIELDINTERVIEWS.INTID = VEHICLE.INTID"
+                        // NOTE: vehicle1_id is varchar(32)
+
 
                         insertValues += "'" + dr["LOCATION"].ToString() + "', ";
-                        insertValues += "'" + dr["INTID"].ToString() + "', ";
                         insertValues += "'" + dr["ASSOCIATION_TYPE"].ToString() + "', ";
                         insertValues += "'" + dr["FIELDINT_OFFICER"].ToString() + "')";
 
@@ -1951,27 +2010,12 @@ namespace ETL._2___Helpers
         #endregion
 
         #region Helpers
-        public string AppendInsertStatement(string InsertStatement, string ValueToAppend, bool SurroundWithQuotes, bool LastField = false)
-        { // SCB TODO: Delete if not using, and aren't using currently.
-            string ResultingStatement = "";
-            if (SurroundWithQuotes)
-                ResultingStatement = InsertStatement + "'" + ValueToAppend + "'";
-            else
-                ResultingStatement = InsertStatement + ValueToAppend;
-
-            if (LastField)
-                ResultingStatement += ")";
-            else
-                ResultingStatement += ", ";
-
-            return ResultingStatement;
-        }
         public DateTime FormatDateTimeForMySQL(string incomingDateTime)
         {
             // MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD HH:MM:SS' format
             return DateTime.Parse(incomingDateTime);
         }
-        public bool BuildMasterCodeDataView(string filePath)
+        public bool BuildMasterCodeDataView(string filePath, MySqlDAL mySqlDAL)
         {
             try
             {
@@ -1983,6 +2027,20 @@ namespace ETL._2___Helpers
                 da.Fill(ds);
                 DataTable dt = ds.Tables[0];
                 vMasterCodes = new DataView(dt);
+
+                // Populate etl_attributes
+                //foreach (DataRow dr in dt.Rows)
+                //{
+                //    string insTemp = "INSERT INTO etl_attributes (ConcatID, TableID, Value, Description, Agency) VALUES " +
+                //            "('[" + dr[0].ToString() + "]-[" + dr[1].ToString() + "]', '" +
+                //            dr[0].ToString() + "', '" +
+                //            dr[1].ToString() + "', '" +
+                //            dr[2].ToString() + "', '" +
+                //            dr[3].ToString() + "')";
+
+                //    mySqlDAL.ExecuteNonQuery(insTemp);
+                //}
+
                 return true;
             }
             catch (Exception ex)

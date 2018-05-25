@@ -30,6 +30,7 @@
         {
             this.ListBoxInfo = new System.Windows.Forms.ListBox();
             this.gbDataEntities = new System.Windows.Forms.GroupBox();
+            this.ChkLBAgencies = new System.Windows.Forms.CheckedListBox();
             this.chkLegacyOther = new System.Windows.Forms.CheckBox();
             this.btnSelectOffenseExcel = new System.Windows.Forms.Button();
             this.txtOffenseExcelFile = new System.Windows.Forms.TextBox();
@@ -42,7 +43,6 @@
             this.chkNames = new System.Windows.Forms.CheckBox();
             this.chkLocations = new System.Windows.Forms.CheckBox();
             this.chkUsers = new System.Windows.Forms.CheckBox();
-            this.chkLookupTables = new System.Windows.Forms.CheckBox();
             this.chkOffenseCodes = new System.Windows.Forms.CheckBox();
             this.chkAttributes = new System.Windows.Forms.CheckBox();
             this.btnRUNMigration = new System.Windows.Forms.Button();
@@ -57,7 +57,7 @@
             this.txtOracleConnString = new System.Windows.Forms.TextBox();
             this.btnClearTables = new System.Windows.Forms.Button();
             this.btnClearETLTable = new System.Windows.Forms.Button();
-            this.Testing = new System.Windows.Forms.Button();
+            this.AgencyFilter = new System.Windows.Forms.Label();
             this.gbDataEntities.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -66,13 +66,15 @@
             // 
             this.ListBoxInfo.FormattingEnabled = true;
             this.ListBoxInfo.ItemHeight = 16;
-            this.ListBoxInfo.Location = new System.Drawing.Point(27, 626);
+            this.ListBoxInfo.Location = new System.Drawing.Point(27, 582);
             this.ListBoxInfo.Name = "ListBoxInfo";
-            this.ListBoxInfo.Size = new System.Drawing.Size(1095, 132);
+            this.ListBoxInfo.Size = new System.Drawing.Size(1145, 340);
             this.ListBoxInfo.TabIndex = 0;
             // 
             // gbDataEntities
             // 
+            this.gbDataEntities.Controls.Add(this.AgencyFilter);
+            this.gbDataEntities.Controls.Add(this.ChkLBAgencies);
             this.gbDataEntities.Controls.Add(this.chkLegacyOther);
             this.gbDataEntities.Controls.Add(this.btnSelectOffenseExcel);
             this.gbDataEntities.Controls.Add(this.txtOffenseExcelFile);
@@ -85,20 +87,41 @@
             this.gbDataEntities.Controls.Add(this.chkNames);
             this.gbDataEntities.Controls.Add(this.chkLocations);
             this.gbDataEntities.Controls.Add(this.chkUsers);
-            this.gbDataEntities.Controls.Add(this.chkLookupTables);
             this.gbDataEntities.Controls.Add(this.chkOffenseCodes);
             this.gbDataEntities.Controls.Add(this.chkAttributes);
             this.gbDataEntities.Location = new System.Drawing.Point(27, 224);
             this.gbDataEntities.Name = "gbDataEntities";
-            this.gbDataEntities.Size = new System.Drawing.Size(1095, 394);
+            this.gbDataEntities.Size = new System.Drawing.Size(1145, 352);
             this.gbDataEntities.TabIndex = 10;
             this.gbDataEntities.TabStop = false;
             this.gbDataEntities.Text = "Data Entities";
             // 
+            // ChkLBAgencies
+            // 
+            this.ChkLBAgencies.FormattingEnabled = true;
+            this.ChkLBAgencies.Items.AddRange(new object[] {
+            "AVP",
+            "DAP",
+            "DAS",
+            "GRT",
+            "GVP",
+            "IDP",
+            "KZP",
+            "LCP",
+            "MMP",
+            "SHARED",
+            "SMP",
+            "SYP",
+            "TRP"});
+            this.ChkLBAgencies.Location = new System.Drawing.Point(711, 109);
+            this.ChkLBAgencies.Name = "ChkLBAgencies";
+            this.ChkLBAgencies.Size = new System.Drawing.Size(270, 225);
+            this.ChkLBAgencies.TabIndex = 27;
+            // 
             // chkLegacyOther
             // 
             this.chkLegacyOther.AutoSize = true;
-            this.chkLegacyOther.Location = new System.Drawing.Point(62, 367);
+            this.chkLegacyOther.Location = new System.Drawing.Point(62, 323);
             this.chkLegacyOther.Name = "chkLegacyOther";
             this.chkLegacyOther.Size = new System.Drawing.Size(126, 21);
             this.chkLegacyOther.TabIndex = 26;
@@ -107,7 +130,7 @@
             // 
             // btnSelectOffenseExcel
             // 
-            this.btnSelectOffenseExcel.Location = new System.Drawing.Point(987, 93);
+            this.btnSelectOffenseExcel.Location = new System.Drawing.Point(987, 52);
             this.btnSelectOffenseExcel.Name = "btnSelectOffenseExcel";
             this.btnSelectOffenseExcel.Size = new System.Drawing.Size(84, 29);
             this.btnSelectOffenseExcel.TabIndex = 25;
@@ -117,7 +140,7 @@
             // 
             // txtOffenseExcelFile
             // 
-            this.txtOffenseExcelFile.Location = new System.Drawing.Point(162, 99);
+            this.txtOffenseExcelFile.Location = new System.Drawing.Point(162, 55);
             this.txtOffenseExcelFile.Name = "txtOffenseExcelFile";
             this.txtOffenseExcelFile.Size = new System.Drawing.Size(819, 22);
             this.txtOffenseExcelFile.TabIndex = 24;
@@ -125,7 +148,7 @@
             // chkLegacyAttachments
             // 
             this.chkLegacyAttachments.AutoSize = true;
-            this.chkLegacyAttachments.Location = new System.Drawing.Point(62, 342);
+            this.chkLegacyAttachments.Location = new System.Drawing.Point(62, 298);
             this.chkLegacyAttachments.Name = "chkLegacyAttachments";
             this.chkLegacyAttachments.Size = new System.Drawing.Size(160, 21);
             this.chkLegacyAttachments.TabIndex = 23;
@@ -135,7 +158,7 @@
             // chkAttachments
             // 
             this.chkAttachments.AutoSize = true;
-            this.chkAttachments.Location = new System.Drawing.Point(34, 315);
+            this.chkAttachments.Location = new System.Drawing.Point(34, 271);
             this.chkAttachments.Name = "chkAttachments";
             this.chkAttachments.Size = new System.Drawing.Size(108, 21);
             this.chkAttachments.TabIndex = 22;
@@ -145,7 +168,7 @@
             // chkCases
             // 
             this.chkCases.AutoSize = true;
-            this.chkCases.Location = new System.Drawing.Point(34, 288);
+            this.chkCases.Location = new System.Drawing.Point(34, 244);
             this.chkCases.Name = "chkCases";
             this.chkCases.Size = new System.Drawing.Size(69, 21);
             this.chkCases.TabIndex = 21;
@@ -155,7 +178,7 @@
             // chkEvidence
             // 
             this.chkEvidence.AutoSize = true;
-            this.chkEvidence.Location = new System.Drawing.Point(34, 261);
+            this.chkEvidence.Location = new System.Drawing.Point(34, 217);
             this.chkEvidence.Name = "chkEvidence";
             this.chkEvidence.Size = new System.Drawing.Size(88, 21);
             this.chkEvidence.TabIndex = 20;
@@ -165,7 +188,7 @@
             // chkItems
             // 
             this.chkItems.AutoSize = true;
-            this.chkItems.Location = new System.Drawing.Point(34, 234);
+            this.chkItems.Location = new System.Drawing.Point(34, 190);
             this.chkItems.Name = "chkItems";
             this.chkItems.Size = new System.Drawing.Size(63, 21);
             this.chkItems.TabIndex = 19;
@@ -175,7 +198,7 @@
             // chkReports
             // 
             this.chkReports.AutoSize = true;
-            this.chkReports.Location = new System.Drawing.Point(34, 207);
+            this.chkReports.Location = new System.Drawing.Point(34, 163);
             this.chkReports.Name = "chkReports";
             this.chkReports.Size = new System.Drawing.Size(80, 21);
             this.chkReports.TabIndex = 18;
@@ -185,7 +208,7 @@
             // chkNames
             // 
             this.chkNames.AutoSize = true;
-            this.chkNames.Location = new System.Drawing.Point(34, 180);
+            this.chkNames.Location = new System.Drawing.Point(34, 136);
             this.chkNames.Name = "chkNames";
             this.chkNames.Size = new System.Drawing.Size(74, 21);
             this.chkNames.TabIndex = 17;
@@ -195,7 +218,7 @@
             // chkLocations
             // 
             this.chkLocations.AutoSize = true;
-            this.chkLocations.Location = new System.Drawing.Point(34, 153);
+            this.chkLocations.Location = new System.Drawing.Point(34, 109);
             this.chkLocations.Name = "chkLocations";
             this.chkLocations.Size = new System.Drawing.Size(91, 21);
             this.chkLocations.TabIndex = 16;
@@ -205,28 +228,17 @@
             // chkUsers
             // 
             this.chkUsers.AutoSize = true;
-            this.chkUsers.Location = new System.Drawing.Point(34, 126);
+            this.chkUsers.Location = new System.Drawing.Point(34, 82);
             this.chkUsers.Name = "chkUsers";
             this.chkUsers.Size = new System.Drawing.Size(67, 21);
             this.chkUsers.TabIndex = 15;
             this.chkUsers.Text = "Users";
             this.chkUsers.UseVisualStyleBackColor = true;
             // 
-            // chkLookupTables
-            // 
-            this.chkLookupTables.AutoSize = true;
-            this.chkLookupTables.Location = new System.Drawing.Point(34, 29);
-            this.chkLookupTables.Name = "chkLookupTables";
-            this.chkLookupTables.Size = new System.Drawing.Size(119, 21);
-            this.chkLookupTables.TabIndex = 12;
-            this.chkLookupTables.Text = "Lookup tables";
-            this.chkLookupTables.UseVisualStyleBackColor = true;
-            this.chkLookupTables.Visible = false;
-            // 
             // chkOffenseCodes
             // 
             this.chkOffenseCodes.AutoSize = true;
-            this.chkOffenseCodes.Location = new System.Drawing.Point(34, 99);
+            this.chkOffenseCodes.Location = new System.Drawing.Point(34, 55);
             this.chkOffenseCodes.Name = "chkOffenseCodes";
             this.chkOffenseCodes.Size = new System.Drawing.Size(122, 21);
             this.chkOffenseCodes.TabIndex = 14;
@@ -238,7 +250,7 @@
             this.chkAttributes.AutoSize = true;
             this.chkAttributes.Checked = true;
             this.chkAttributes.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAttributes.Location = new System.Drawing.Point(34, 72);
+            this.chkAttributes.Location = new System.Drawing.Point(34, 28);
             this.chkAttributes.Name = "chkAttributes";
             this.chkAttributes.Size = new System.Drawing.Size(90, 21);
             this.chkAttributes.TabIndex = 13;
@@ -248,9 +260,9 @@
             // btnRUNMigration
             // 
             this.btnRUNMigration.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRUNMigration.Location = new System.Drawing.Point(1128, 25);
+            this.btnRUNMigration.Location = new System.Drawing.Point(1178, 25);
             this.btnRUNMigration.Name = "btnRUNMigration";
-            this.btnRUNMigration.Size = new System.Drawing.Size(192, 38);
+            this.btnRUNMigration.Size = new System.Drawing.Size(201, 38);
             this.btnRUNMigration.TabIndex = 11;
             this.btnRUNMigration.Text = "RUN Migration";
             this.btnRUNMigration.UseVisualStyleBackColor = true;
@@ -267,7 +279,7 @@
             this.groupBox1.Controls.Add(this.txtOracleConnString);
             this.groupBox1.Location = new System.Drawing.Point(27, 25);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(1095, 193);
+            this.groupBox1.Size = new System.Drawing.Size(1145, 193);
             this.groupBox1.TabIndex = 12;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Data Sources (Connect Strings)";
@@ -333,9 +345,9 @@
             // btnClearTables
             // 
             this.btnClearTables.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClearTables.Location = new System.Drawing.Point(1128, 441);
+            this.btnClearTables.Location = new System.Drawing.Point(1178, 824);
             this.btnClearTables.Name = "btnClearTables";
-            this.btnClearTables.Size = new System.Drawing.Size(192, 38);
+            this.btnClearTables.Size = new System.Drawing.Size(204, 38);
             this.btnClearTables.TabIndex = 13;
             this.btnClearTables.Text = "Clear Migration Tables";
             this.btnClearTables.UseVisualStyleBackColor = true;
@@ -344,31 +356,28 @@
             // btnClearETLTable
             // 
             this.btnClearETLTable.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClearETLTable.Location = new System.Drawing.Point(1128, 501);
+            this.btnClearETLTable.Location = new System.Drawing.Point(1178, 884);
             this.btnClearETLTable.Name = "btnClearETLTable";
-            this.btnClearETLTable.Size = new System.Drawing.Size(192, 38);
+            this.btnClearETLTable.Size = new System.Drawing.Size(204, 38);
             this.btnClearETLTable.TabIndex = 14;
             this.btnClearETLTable.Text = "Clear ETL Table(s)";
             this.btnClearETLTable.UseVisualStyleBackColor = true;
             this.btnClearETLTable.Click += new System.EventHandler(this.btnClearETLTable_Click);
             // 
-            // Testing
+            // AgencyFilter
             // 
-            this.Testing.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Testing.Location = new System.Drawing.Point(1128, 692);
-            this.Testing.Name = "Testing";
-            this.Testing.Size = new System.Drawing.Size(192, 38);
-            this.Testing.TabIndex = 15;
-            this.Testing.Text = "Testing";
-            this.Testing.UseVisualStyleBackColor = true;
-            this.Testing.Click += new System.EventHandler(this.Testing_Click);
+            this.AgencyFilter.AutoSize = true;
+            this.AgencyFilter.Location = new System.Drawing.Point(708, 89);
+            this.AgencyFilter.Name = "AgencyFilter";
+            this.AgencyFilter.Size = new System.Drawing.Size(270, 17);
+            this.AgencyFilter.TabIndex = 28;
+            this.AgencyFilter.Text = "Agency Filter (Attributes, Offense Codes):";
             // 
             // ETLController
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1332, 770);
-            this.Controls.Add(this.Testing);
+            this.ClientSize = new System.Drawing.Size(1394, 939);
             this.Controls.Add(this.btnClearETLTable);
             this.Controls.Add(this.btnClearTables);
             this.Controls.Add(this.groupBox1);
@@ -393,7 +402,6 @@
         private System.Windows.Forms.CheckBox chkNames;
         private System.Windows.Forms.CheckBox chkLocations;
         private System.Windows.Forms.CheckBox chkUsers;
-        private System.Windows.Forms.CheckBox chkLookupTables;
         private System.Windows.Forms.CheckBox chkOffenseCodes;
         private System.Windows.Forms.CheckBox chkAttributes;
         private System.Windows.Forms.CheckBox chkLegacyAttachments;
@@ -417,7 +425,8 @@
         private System.Windows.Forms.CheckBox chkLegacyOther;
         private System.Windows.Forms.Button btnClearTables;
         private System.Windows.Forms.Button btnClearETLTable;
-        private System.Windows.Forms.Button Testing;
+        private System.Windows.Forms.CheckedListBox ChkLBAgencies;
+        private System.Windows.Forms.Label AgencyFilter;
     }
 }
 

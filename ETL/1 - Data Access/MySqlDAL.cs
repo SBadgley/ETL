@@ -15,9 +15,13 @@ namespace DataAccessLayer_NET_Framework_
         public static string mySqlConnectionString = "";
         public MySqlConnection MySqlConn { get => mySqlConn; set => mySqlConn = value; }
         #endregion
-        public MySqlDAL(string connectionString)
+        public MySqlDAL(string connectionString = "")
         {
-            mySqlConnectionString = connectionString; //ConfigurationManager.AppSettings["MySql_FullConnString"];
+            if (connectionString == "")
+            {
+                connectionString  = ConfigurationManager.AppSettings["MySql_FullConnString"];
+            }
+            mySqlConnectionString = connectionString; 
             MySqlConn = new MySqlConnection(mySqlConnectionString);
         }
         public static MySqlDAL GetInstance()
@@ -90,10 +94,6 @@ namespace DataAccessLayer_NET_Framework_
                     iScalarInt = Convert.ToInt32(oScalarValue); 
                     //logging.WriteEvent("ExecuteScalar called. Statement = " + executeString);
                     return iScalarInt;
-
-
-                    //iScalarValue = (int)mySqlComm.ExecuteScalar();
-                    //return iScalarValue;
                 }
                 catch (Exception ex)
                 {
@@ -135,37 +135,6 @@ namespace DataAccessLayer_NET_Framework_
                 return null;
             }
         }
-
-        //public string ExecuteLookup(string executeString)
-        //{
-        //    if (OpenConnection())
-        //    {
-        //        MySqlCommand mySqlComm = new MySqlCommand
-        //        {
-        //            CommandType = CommandType.Text,
-        //            CommandText = executeString,
-        //            Connection = MySqlConn
-        //        };
-
-        //        try
-        //        {
-        //            MySqlDataReader dr = mySqlComm.ExecuteReader();
-        //            return dr[0].ToString();
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            logging.WriteEvent("Error in ExecuteLookup. " + ex.Message);
-        //            return null;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        logging.WriteEvent("Error in ExecuteLookup. Could not connect to database.");
-        //        return null;
-        //    }
-        //}
-
-
         public void Close()
         {
             MySqlConn.Close();

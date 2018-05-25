@@ -22,11 +22,7 @@ namespace DataAccessLayer_NET_Framework_
         public SQLServerDAL(string connectionString)
         {
             ConnectionStringProperty = connectionString;
-            //SqlConnection objSqlConnection = new SqlConnection(ConnectionStringProperty);
-            //if (objSqlConnection.State == ConnectionState.Closed)
-            //{
-            //    objSqlConnection.Open();
-            //}
+
         }
 
         public static SQLServerDAL GetInstance(string DB)
@@ -59,7 +55,6 @@ namespace DataAccessLayer_NET_Framework_
                 throw ex;
             }
         }
-
         public void Dispose()
         {
             try
@@ -76,7 +71,6 @@ namespace DataAccessLayer_NET_Framework_
                 throw ex;
             }
         }
-
         public int ExecuteNonQuery(string executeStatement = "")
         {
             OpenConnection();
@@ -111,7 +105,6 @@ namespace DataAccessLayer_NET_Framework_
                 return 0;
             }
         }
-
         public SqlDataReader ExecuteReader(string executeStatement = "")
         {
             OpenConnection();
@@ -139,7 +132,6 @@ namespace DataAccessLayer_NET_Framework_
                 return null;
             }
         }
-
         public bool ExecuteStoredProcedure(string StoredProcedureName, SqlParameter[] Parameters = null)
         {
             try
@@ -171,7 +163,6 @@ namespace DataAccessLayer_NET_Framework_
                 return false;
             }
         }
-
         public DataSet ExecuteGetDataSet(string executeStatement = "")
         {
             OpenConnection();
@@ -198,7 +189,6 @@ namespace DataAccessLayer_NET_Framework_
                 return null;
             }
         }
-
         public int ExecuteScalar(string executeStatement = "")
         {
             OpenConnection();
